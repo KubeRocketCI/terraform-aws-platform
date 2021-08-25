@@ -1,0 +1,42 @@
+controller:
+  addHeaders:
+    X-Content-Type-Options: nosniff
+    X-Frame-Options: SAMEORIGIN
+
+  resources:
+    limits:
+      memory: "256Mi"
+    requests:
+      cpu: "50m"
+      memory: "128Mi"
+
+  config:
+    ssl-redirect: 'true'
+    client-header-buffer-size: '64k'
+    http2-max-field-size: '64k'
+    http2-max-header-size: '64k'
+    large-client-header-buffers: '4 64k'
+    upstream-keepalive-timeout: '120'
+    keep-alive: '10'
+    use-forwarded-headers: 'true'
+    proxy-buffer-size: '8k'
+
+  service:
+    type: NodePort
+    nodePorts:
+      http: 32080
+      https: 32443
+
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate
+  metrics:
+    enabled: true
+
+defaultBackend:
+  enabled: true
+
+serviceAccount:
+  create: true
+  name: nginx-ingress-service-account

@@ -1,0 +1,22 @@
+global:
+  edpName: edp
+  dnsWildCard: test-eks.example.com
+  webConsole:
+    url: https://0CB664CE3DFE19738756BE81EC7AB497.sk1.eu-central-1.eks.amazonaws.com
+  platform: kubernetes
+  admins: [user_name1@example.com,user_name2@example.com]
+  developers: [user_name1@example.com,user_name2@example.com]
+keycloak-operator:
+  keycloak:
+    url: https://keycloak.test-eks.example.com
+dockerRegistry:
+  enabled: true
+  url: 012345678910.dkr.ecr.eu-central-1.amazonaws.com
+
+edp:
+  adminGroups:
+    - "edp-admin"
+  developerGroups:
+    - "edp-developer"
+
+kanikoRoleArn: arn:aws:iam::012345678910:role/AWSIRSATestEksEdpKaniko
