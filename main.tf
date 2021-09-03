@@ -235,10 +235,12 @@ module "eks" {
   kubeconfig_aws_authenticator_command_args  = var.kubeconfig_aws_authenticator_command == "aws" ? ["eks", "get-token", "--cluster-name", element(concat(data.aws_eks_cluster_auth.cluster[*].name, [""]), 0)] : []
   kubeconfig_aws_authenticator_env_variables = var.kubeconfig_aws_authenticator_env_variables
 
-  # Add separate map to the list for each new customer by copy-pasting spot or on-demand map example
+  # Add a separate map to the list for each new customer by copy-pasting spot or on-demand map example.
+  # Note, the maps below here are just for example usage. Please, make sure to fill in the input variables
+  # with values according to the needs of your project.
   worker_groups_launch_template = [
     {
-      name                                     = "on-demand"
+      name                                     = "project-name-on-demand"
       override_instance_types                  = var.demand_instance_types
       asg_min_size                             = 0 # must be less or equal to desired_nodes_count
       asg_max_size                             = 0
@@ -258,7 +260,7 @@ module "eks" {
       key_name                  = var.key_name
     },
     {
-      name                    = "spot"
+      name                    = "project-name-spot"
       override_instance_types = var.spot_instance_types
       spot_instance_pools     = 2
       subnets                 = var.create_vpc ? [module.vpc.private_subnets[0]] : [var.private_subnets_id[0]]
@@ -279,7 +281,7 @@ module "eks" {
     },
     /*
     {
-      name                    = "<PROJECT_CODE>"
+      name                    = "<PROJECT_CODE>-spot"
       override_instance_types = var.spot_instance_types
       spot_instance_pools     = 0
       subnets                 = var.create_vpc ? [module.vpc.private_subnets[0]] : [var.private_subnets_id[0]]
@@ -294,6 +296,34 @@ module "eks" {
       load_balancers          = [module.elb.elb_name] # uncomment if you need Gerrit
       root_volume_size        = 30
       enable_monitoring       = false
+
+      iam_instance_profile_name = "<IAM_PROFILE>"
+      key_name                  = var.key_name
+
+      tags = [
+        {
+          "key"                 = "user:tag"
+          "propagate_at_launch" = "true"
+          "value"               = "<PROJECT_CODE>" # specify project code to tag EC2 instances and volumes for customer resources granular billing
+        }
+      ]
+    },
+    {
+      name                                     = "<PROJECT_CODE>-on-demand"
+      override_instance_types                  = var.demand_instance_types
+      asg_min_size                             = 0 # must be less or equal to desired_nodes_count
+      asg_max_size                             = 0
+      asg_desired_capacity                     = 0
+      subnets                                  = var.create_vpc ? [module.vpc.private_subnets[0]] : [var.private_subnets_id[0]]
+      on_demand_percentage_above_base_capacity = 100
+      additional_userdata                      = var.add_userdata
+      kubelet_extra_args                       = "--node-labels=node.kubernetes.io/lifecycle=normal"
+      suspended_processes                      = ["AZRebalance", "ReplaceUnhealthy"]
+      public_ip                                = false
+      target_group_arns                        = module.alb.target_group_arns
+      # load_balancers                           = [module.elb.elb_name] # uncomment if you need Gerrit
+      root_volume_size  = 30
+      enable_monitoring = false
 
       iam_instance_profile_name = "<IAM_PROFILE>"
       key_name                  = var.key_name
