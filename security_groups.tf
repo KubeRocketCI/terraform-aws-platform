@@ -6,25 +6,25 @@ resource "aws_security_group" "cidr_blocks" {
 }
 
 resource "aws_security_group_rule" "nat_gw_http" {
-  for_each          = toset(local.nat_public_cidrs)
+  count             = length(local.nat_public_cidrs)
   description       = "NAT Gateway public ips list"
   type              = "ingress"
   from_port         = 80
   to_port           = 80
   protocol          = "tcp"
-  cidr_blocks       = [each.value]
+  cidr_blocks       = [local.nat_public_cidrs[count.index]]
   ipv6_cidr_blocks  = null
   security_group_id = aws_security_group.cidr_blocks.id
 }
 
 resource "aws_security_group_rule" "nat_gw_https" {
-  for_each          = toset(local.nat_public_cidrs)
+  count             = length(local.nat_public_cidrs)
   description       = "NAT Gateway public ips list"
   type              = "ingress"
   from_port         = 443
   to_port           = 443
   protocol          = "tcp"
-  cidr_blocks       = [each.value]
+  cidr_blocks       = [local.nat_public_cidrs[count.index]]
   ipv6_cidr_blocks  = null
   security_group_id = aws_security_group.cidr_blocks.id
 }
