@@ -248,7 +248,7 @@ module "eks" {
       subnets                                  = var.create_vpc ? [module.vpc.private_subnets[0]] : [var.private_subnets_id[0]]
       on_demand_percentage_above_base_capacity = 100
       additional_userdata                      = var.add_userdata
-      kubelet_extra_args                       = "--node-labels=node.kubernetes.io/lifecycle=normal"
+      kubelet_extra_args                       = "--node-labels=node.kubernetes.io/lifecycle=normal --node-labels=project=project-name --register-with-taints=project=project-name:NoSchedule"
       suspended_processes                      = ["AZRebalance", "ReplaceUnhealthy"]
       public_ip                                = false
       target_group_arns                        = module.alb.target_group_arns
@@ -268,7 +268,7 @@ module "eks" {
       asg_max_size            = 2
       asg_desired_capacity    = 2
       additional_userdata     = var.add_userdata
-      kubelet_extra_args      = "--node-labels=node.kubernetes.io/lifecycle=spot"
+      kubelet_extra_args      = "--node-labels=node.kubernetes.io/lifecycle=spot --node-labels=project=project-name --register-with-taints=project=project-name:NoSchedule"
       suspended_processes     = []
       public_ip               = false
       target_group_arns       = module.alb.target_group_arns
@@ -289,7 +289,7 @@ module "eks" {
       asg_max_size            = 0
       asg_desired_capacity    = 0
       additional_userdata     = var.add_userdata
-      kubelet_extra_args      = "--node-labels=node.kubernetes.io/lifecycle=spot"
+      kubelet_extra_args      = "--node-labels=node.kubernetes.io/lifecycle=spot --node-labels=project=<PROJECT_CODE> --register-with-taints=project=<PROJECT_CODE>:NoSchedule"
       suspended_processes     = []
       public_ip               = false
       target_group_arns       = module.alb.target_group_arns
@@ -317,7 +317,7 @@ module "eks" {
       subnets                                  = var.create_vpc ? [module.vpc.private_subnets[0]] : [var.private_subnets_id[0]]
       on_demand_percentage_above_base_capacity = 100
       additional_userdata                      = var.add_userdata
-      kubelet_extra_args                       = "--node-labels=node.kubernetes.io/lifecycle=normal"
+      kubelet_extra_args                       = "--node-labels=node.kubernetes.io/lifecycle=normal --node-labels=project=<PROJECT_CODE> --register-with-taints=project=<PROJECT_CODE>:NoSchedule"
       suspended_processes                      = ["AZRebalance", "ReplaceUnhealthy"]
       public_ip                                = false
       target_group_arns                        = module.alb.target_group_arns
