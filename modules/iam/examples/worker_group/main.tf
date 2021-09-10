@@ -15,17 +15,16 @@ resource "random_string" "suffix" {
   special = false
 }
 
-module "kaniko_iam_role" {
+module "worker_group_iam_role" {
   source = "../.."
 
-  create_iam_kaniko       = true
-  create_iam_worker_group = false
+  create_iam_kaniko       = false
+  create_iam_worker_group = true
 
-  region                  = var.region
-  tenant_name             = local.tenant_name
-  cluster_oidc_issuer_url = var.cluster_oidc_issuer_url
-  oidc_provider_arn       = var.oidc_provider_arn
-  namespace               = var.namespace
+  region                   = var.region
+  tenant_name              = local.tenant_name
+  attach_worker_cni_policy = true
+  attach_worker_efs_policy = true
 
   tags = {
     "SysName"      = "EKS"

@@ -1,6 +1,8 @@
 locals {
-  oidc_issuer_url  = trimprefix(var.cluster_oidc_issuer_url, "https://")
-  kaniko_role_name = "AWSIRSA${replace(title("${var.platform_name}${var.namespace}"), "-", "")}Kaniko"
+  aws_account_id            = data.aws_caller_identity.current.account_id
+  oidc_issuer_url           = trimprefix(var.cluster_oidc_issuer_url, "https://")
+  kaniko_role_name_template = "AWSIRSA${replace(format("%s%s", title(var.tenant_name), title(var.namespace)), "-", "")}Kaniko"
+  kaniko_role_name          = var.kaniko_role_name != "" ? var.kaniko_role_name : local.kaniko_role_name_template
 }
 
 data "aws_iam_policy_document" "kaniko_policy" {
@@ -45,7 +47,7 @@ resource "aws_iam_role" "kaniko" {
           ]
           Action   = "ecr:*"
           Effect   = "Allow"
-          Resource = "arn:aws:ecr:${var.region}:${var.aws_account_id}:repository/${var.namespace}/*"
+          Resource = "arn:aws:ecr:${var.region}:${local.aws_account_id}:repository/${var.namespace}/*"
         },
         {
           Action   = "ecr:GetAuthorizationToken"
@@ -58,7 +60,7 @@ resource "aws_iam_role" "kaniko" {
             "ecr:CreateRepository"
           ]
           Effect   = "Allow"
-          Resource = "arn:aws:ecr:${var.region}:${var.aws_account_id}:repository/*"
+          Resource = "arn:aws:ecr:${var.region}:${local.aws_account_id}:repository/*"
         }
       ]
     })
