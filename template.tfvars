@@ -45,7 +45,7 @@ public_security_group_ids = [
 ]
 
 # EKS cluster configuration
-cluster_version = "1.18"
+cluster_version = "1.20"
 key_name        = "<AWS_KEY_PAIR_NAME>" # must be created as a prerequisite
 enable_irsa     = true
 
@@ -64,7 +64,7 @@ kubeconfig_aws_authenticator_env_variables = {
 }
 
 add_userdata = <<EOF
-export TOKEN=$(aws ssm get-parameter --name edprobot --query 'Parameter.Value' --region <REGION> --output text)
+export TOKEN=$(aws ssm get-parameter --name <PARAMETER_NAME> --query 'Parameter.Value' --region <REGION> --output text)
 cat <<DATA > /var/lib/kubelet/config.json
 {
   "auths":{

@@ -1,11 +1,11 @@
 variable "create_iam_kaniko" {
-  description = "Controls if IAM role for Kaniko pod should be created"
+  description = "Whether to create IAM role for Kaniko pod"
   type        = bool
   default     = false
 }
 
 variable "create_iam_worker_group" {
-  description = "Controls if IAM role for worker group should be created"
+  description = "Whether to create IAM role for worker group"
   type        = bool
   default     = false
 }
@@ -45,9 +45,9 @@ variable "oidc_provider_arn" {
 }
 
 variable "namespace" {
-  description = "The namespace to deploy Kaniko"
+  description = "The namespace where tenant resources are deployed"
   type        = string
-  default     = "kaniko"
+  default     = "tenant"
 }
 
 variable "attach_worker_cni_policy" {

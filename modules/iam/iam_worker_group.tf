@@ -1,10 +1,3 @@
-locals {
-  ec2_principal                   = "ec2.${data.aws_partition.current.dns_suffix}"
-  policy_arn_prefix               = "arn:${data.aws_partition.current.partition}:iam::aws:policy"
-  worker_group_role_name_template = "ServiceRoleForEKS${replace(title(var.tenant_name), "-", "")}WorkerNode"
-  worker_group_role_name          = var.worker_group_role_name != "" ? var.worker_group_role_name : local.worker_group_role_name_template
-}
-
 data "aws_iam_policy_document" "workers_assume_role_policy" {
   statement {
     sid = "EKSWorkerAssumeRole"
@@ -21,9 +14,9 @@ data "aws_iam_policy_document" "workers_assume_role_policy" {
 }
 
 resource "aws_iam_instance_profile" "workers" {
-  count = var.create_iam_worker_group ? 1 : 0
-  name  = local.worker_group_role_name
-  role  = aws_iam_role.workers[0].name
+  count       = var.create_iam_worker_group ? 1 : 0
+  name_prefix = local.worker_group_role_name
+  role        = aws_iam_role.workers[0].name
 
   tags = merge(var.tags, map("Name", local.worker_group_role_name))
 
@@ -41,25 +34,19 @@ resource "aws_iam_role" "workers" {
   tags                  = merge(var.tags, map("Name", local.worker_group_role_name))
 }
 
-resource "aws_iam_role_policy_attachment" "workers_AmazonEKSWorkerNodePolicy" {
+resource "aws_iam_role_policy_attachment" "workers_amazon_eks_worker_nod_policy" {
   count      = var.create_iam_worker_group ? 1 : 0
   policy_arn = "${local.policy_arn_prefix}/AmazonEKSWorkerNodePolicy"
   role       = aws_iam_role.workers[0].name
 }
 
-resource "aws_iam_role_policy_attachment" "workers_AmazonEKS_CNI_Policy" {
+resource "aws_iam_role_policy_attachment" "workers_amazon_eks_cni_policy" {
   count      = var.create_iam_worker_group && var.attach_worker_cni_policy ? 1 : 0
   policy_arn = "${local.policy_arn_prefix}/AmazonEKS_CNI_Policy"
   role       = aws_iam_role.workers[0].name
 }
 
-resource "aws_iam_role_policy_attachment" "workers_AmazonEC2ContainerRegistryReadOnly" {
-  count      = var.create_iam_worker_group ? 1 : 0
-  policy_arn = "${local.policy_arn_prefix}/AmazonEC2ContainerRegistryReadOnly"
-  role       = aws_iam_role.workers[0].name
-}
-
-resource "aws_iam_role_policy_attachment" "workers_AmazonSSMManagedInstanceCore" {
+resource "aws_iam_role_policy_attachment" "workers_amazon_ssm_managed_instance_core" {
   count      = var.create_iam_worker_group ? 1 : 0
   policy_arn = "${local.policy_arn_prefix}/AmazonSSMManagedInstanceCore"
   role       = aws_iam_role.workers[0].name
@@ -71,10 +58,49 @@ resource "aws_iam_role_policy_attachment" "workers_additional_policies" {
   role       = aws_iam_role.workers[0].name
 }
 
+resource "aws_iam_role_policy_attachment" "workers_amazon_ec2_container_registry_read_only" {
+  count      = var.create_iam_worker_group ? 1 : 0
+  policy_arn = aws_iam_policy.workers_amazon_ec2_container_registry_read_only[0].arn
+  role       = aws_iam_role.workers[0].name
+}
+
+
 resource "aws_iam_role_policy_attachment" "workers_efs_provisioner" {
   count      = var.create_iam_worker_group && var.attach_worker_efs_policy ? 1 : 0
   policy_arn = aws_iam_policy.workers_efs_provisioner[0].arn
   role       = aws_iam_role.workers[0].name
+}
+
+resource "aws_iam_policy" "workers_amazon_ec2_container_registry_read_only" {
+  count       = var.create_iam_worker_group ? 1 : 0
+  name        = "${replace(title(var.tenant_name), "-", "")}EC2ContainerRegistryReadOnly"
+  description = "The read-only policy for ${var.tenant_name} tenant registry"
+
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ecr:GetAuthorizationToken",
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:GetRepositoryPolicy",
+                "ecr:DescribeRepositories",
+                "ecr:ListImages",
+                "ecr:DescribeImages",
+                "ecr:BatchGetImage",
+                "ecr:GetLifecyclePolicy",
+                "ecr:GetLifecyclePolicyPreview",
+                "ecr:ListTagsForResource",
+                "ecr:DescribeImageScanFindings"
+            ],
+            "Resource": "arn:aws:ecr:${var.region}:${local.aws_account_id}:repository/${var.namespace}"
+        }
+    ]
+}
+EOF
 }
 
 resource "aws_iam_policy" "workers_efs_provisioner" {

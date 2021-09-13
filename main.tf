@@ -1,62 +1,3 @@
-# Fill the gaps instead <...>
-
-data "aws_eks_cluster" "cluster" {
-  count = var.create_cluster ? 1 : 0
-  name  = module.eks.cluster_id
-}
-
-data "aws_eks_cluster_auth" "cluster" {
-  count = var.create_cluster ? 1 : 0
-  name  = module.eks.cluster_id
-}
-
-data "aws_security_group" "default" {
-  vpc_id = var.create_vpc ? module.vpc.vpc_id : var.vpc_id
-
-  filter {
-    name   = "group-name"
-    values = ["default"]
-  }
-}
-
-data "aws_route53_zone" "this" {
-  name         = var.platform_domain_name
-  private_zone = false
-}
-
-locals {
-  default_security_group_id = data.aws_security_group.default.id
-  lb_security_group_ids     = compact(concat(tolist([local.default_security_group_id, aws_security_group.cidr_blocks.id]), aws_security_group.prefix_list.*.id, var.public_security_group_ids))
-  nat_public_cidrs          = var.create_vpc ? formatlist("%s/32", module.vpc.nat_public_ips) : var.nat_public_cidrs
-
-  target_groups = [
-    {
-      "name"                 = "${var.platform_name}-infra-alb-http"
-      "backend_port"         = "32080"
-      "backend_protocol"     = "HTTP"
-      "deregistration_delay" = "20"
-      "health_check" = {
-        healthy_threshold   = 5
-        unhealthy_threshold = 2
-        protocol            = "HTTP"
-        matcher             = "404"
-      }
-    },
-    {
-      "name"                 = "${var.platform_name}-infra-alb-https"
-      "backend_port"         = "32443"
-      "backend_protocol"     = "HTTPS"
-      "deregistration_delay" = "20"
-      "health_check" = {
-        healthy_threshold   = 5
-        unhealthy_threshold = 2
-        protocol            = "HTTPS"
-        matcher             = "404"
-      }
-    },
-  ]
-}
-
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "3.0.0"
@@ -221,123 +162,20 @@ module "eks" {
 
   manage_cluster_iam_resources = var.manage_cluster_iam_resources
   manage_worker_iam_resources  = var.manage_worker_iam_resources
-  cluster_iam_role_name        = var.manage_cluster_iam_resources ? "ServiceRoleForEKS${var.platform_name}" : var.cluster_iam_role_name
-  workers_role_name            = "ServiceRoleForEks${var.platform_name}WorkerNode"
+  cluster_iam_role_name        = var.manage_cluster_iam_resources ? local.cluster_iam_role_name_to_create : var.cluster_iam_role_name
+  workers_role_name            = var.manage_worker_iam_resources ? local.worker_iam_role_name_to_create : ""
 
   cluster_endpoint_private_access = true
   cluster_create_security_group   = false
   worker_create_security_group    = false
-
-  cluster_security_group_id = local.default_security_group_id
-  worker_security_group_id  = local.default_security_group_id
+  cluster_security_group_id       = local.default_security_group_id
+  worker_security_group_id        = local.default_security_group_id
 
   kubeconfig_aws_authenticator_command       = var.kubeconfig_aws_authenticator_command
   kubeconfig_aws_authenticator_command_args  = var.kubeconfig_aws_authenticator_command == "aws" ? ["eks", "get-token", "--cluster-name", element(concat(data.aws_eks_cluster_auth.cluster[*].name, [""]), 0)] : []
   kubeconfig_aws_authenticator_env_variables = var.kubeconfig_aws_authenticator_env_variables
 
-  # Add a separate map to the list for each new customer by copy-pasting spot or on-demand map example.
-  # Note, the maps below here are just for example usage. Please, make sure to fill in the input variables
-  # with values according to the needs of your project.
-  worker_groups_launch_template = [
-    {
-      name                                     = "project-name-on-demand"
-      override_instance_types                  = var.demand_instance_types
-      asg_min_size                             = 0 # must be less or equal to desired_nodes_count
-      asg_max_size                             = 0
-      asg_desired_capacity                     = 0
-      subnets                                  = var.create_vpc ? [module.vpc.private_subnets[0]] : [var.private_subnets_id[0]]
-      on_demand_percentage_above_base_capacity = 100
-      additional_userdata                      = var.add_userdata
-      kubelet_extra_args                       = "--node-labels=node.kubernetes.io/lifecycle=normal --node-labels=project=project-name --register-with-taints=project=project-name:NoSchedule"
-      suspended_processes                      = ["AZRebalance", "ReplaceUnhealthy"]
-      public_ip                                = false
-      target_group_arns                        = module.alb.target_group_arns
-      load_balancers                           = [module.elb.elb_name] # uncomment if you need Gerrit
-      root_volume_size                         = 30
-      enable_monitoring                        = false
-
-      iam_instance_profile_name = var.worker_iam_instance_profile_name
-      key_name                  = var.key_name
-    },
-    {
-      name                    = "project-name-spot"
-      override_instance_types = var.spot_instance_types
-      spot_instance_pools     = 2
-      subnets                 = var.create_vpc ? [module.vpc.private_subnets[0]] : [var.private_subnets_id[0]]
-      asg_min_size            = 2 # must be less or equal to desired_nodes_count
-      asg_max_size            = 2
-      asg_desired_capacity    = 2
-      additional_userdata     = var.add_userdata
-      kubelet_extra_args      = "--node-labels=node.kubernetes.io/lifecycle=spot --node-labels=project=project-name --register-with-taints=project=project-name:NoSchedule"
-      suspended_processes     = []
-      public_ip               = false
-      target_group_arns       = module.alb.target_group_arns
-      load_balancers          = [module.elb.elb_name] # uncomment if you need Gerrit
-      root_volume_size        = 30
-      enable_monitoring       = false
-
-      iam_instance_profile_name = var.worker_iam_instance_profile_name
-      key_name                  = var.key_name
-    },
-    /*
-    {
-      name                    = "<PROJECT_CODE>-spot"
-      override_instance_types = var.spot_instance_types
-      spot_instance_pools     = 0
-      subnets                 = var.create_vpc ? [module.vpc.private_subnets[0]] : [var.private_subnets_id[0]]
-      asg_min_size            = 0 # must be less or equal to desired_nodes_count
-      asg_max_size            = 0
-      asg_desired_capacity    = 0
-      additional_userdata     = var.add_userdata
-      kubelet_extra_args      = "--node-labels=node.kubernetes.io/lifecycle=spot --node-labels=project=<PROJECT_CODE> --register-with-taints=project=<PROJECT_CODE>:NoSchedule"
-      suspended_processes     = []
-      public_ip               = false
-      target_group_arns       = module.alb.target_group_arns
-      load_balancers          = [module.elb.elb_name] # uncomment if you need Gerrit
-      root_volume_size        = 30
-      enable_monitoring       = false
-
-      iam_instance_profile_name = "<IAM_PROFILE>"
-      key_name                  = var.key_name
-
-      tags = [
-        {
-          "key"                 = "user:tag"
-          "propagate_at_launch" = "true"
-          "value"               = "<PROJECT_CODE>" # specify project code to tag EC2 instances and volumes for customer resources granular billing
-        }
-      ]
-    },
-    {
-      name                                     = "<PROJECT_CODE>-on-demand"
-      override_instance_types                  = var.demand_instance_types
-      asg_min_size                             = 0 # must be less or equal to desired_nodes_count
-      asg_max_size                             = 0
-      asg_desired_capacity                     = 0
-      subnets                                  = var.create_vpc ? [module.vpc.private_subnets[0]] : [var.private_subnets_id[0]]
-      on_demand_percentage_above_base_capacity = 100
-      additional_userdata                      = var.add_userdata
-      kubelet_extra_args                       = "--node-labels=node.kubernetes.io/lifecycle=normal --node-labels=project=<PROJECT_CODE> --register-with-taints=project=<PROJECT_CODE>:NoSchedule"
-      suspended_processes                      = ["AZRebalance", "ReplaceUnhealthy"]
-      public_ip                                = false
-      target_group_arns                        = module.alb.target_group_arns
-      # load_balancers                           = [module.elb.elb_name] # uncomment if you need Gerrit
-      root_volume_size  = 30
-      enable_monitoring = false
-
-      iam_instance_profile_name = "<IAM_PROFILE>"
-      key_name                  = var.key_name
-
-      tags = [
-        {
-          "key"                 = "user:tag"
-          "propagate_at_launch" = "true"
-          "value"               = "<PROJECT_CODE>" # specify project code to tag EC2 instances and volumes for customer resources granular billing
-        }
-      ]
-    }
-    */
-  ]
+  worker_groups_launch_template = local.worker_groups_launch_template_merged
 
   map_users = var.map_users
   map_roles = var.map_roles

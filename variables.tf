@@ -1,17 +1,17 @@
 variable "create_vpc" {
-  description = "Controls if VPC should be created or used existing one"
+  description = "Whether to create a new VPC or use existing one"
   type        = bool
   default     = true
 }
 
 variable "create_cluster" {
-  description = "Controls if EKS cluster and required stuff should be created. Maybe set to false if there are any additional steps between VPC and EKS cluster deployment required"
+  description = "Whether to create EKS cluster and required stuff. Maybe set to false if there are any additional steps between VPC and EKS cluster deployment required"
   type        = bool
   default     = true
 }
 
 variable "create_elb" {
-  description = "Controls if ELB for Gerrit should be created. The variable create_cluster = true is required"
+  description = "Whether to create ELB for Gerrit. The variable create_cluster = true is required"
   type        = bool
   default     = true
 }
@@ -136,7 +136,7 @@ variable "enable_irsa" {
 }
 
 variable "manage_cluster_iam_resources" {
-  description = "Whether to let the module manage cluster IAM resources. If set to false, cluster_iam_role_name must be specified."
+  description = "Whether to let the module manage cluster IAM resources. If set to false, cluster_iam_role_name must be specified"
   type        = bool
   default     = true
 }
@@ -148,7 +148,7 @@ variable "cluster_iam_role_name" {
 }
 
 variable "manage_worker_iam_resources" {
-  description = "Whether to let the module manage worker IAM resources. If set to false, iam_instance_profile_name must be specified for workers."
+  description = "Whether to let the module manage worker IAM resources. If set to false, iam_instance_profile_name must be specified for workers"
   type        = bool
   default     = true
 }
@@ -166,7 +166,7 @@ variable "kubeconfig_aws_authenticator_command" {
 }
 
 variable "kubeconfig_aws_authenticator_env_variables" {
-  description = "Environment variables that should be used when executing the authenticator. e.g. { AWS_PROFILE = \"aws_user\"}."
+  description = "Environment variables that should be used when executing the authenticator. e.g. { AWS_PROFILE = \"aws_user\"}"
   type        = map(string)
   default     = {}
 }
@@ -211,4 +211,16 @@ variable "spot_instance_types" {
   description = "AWS instance type to build nodes for spot pool"
   type        = list(any)
   default     = ["r5.large", "m5.large", "t3.large"]
+}
+
+variable "tenants" {
+  description = "Inputs for worker groups launch temaplate in case of multitenancy deployment"
+  type        = any
+  default     = {}
+}
+
+variable "extended_outputs" {
+  description = "Whether to show extended outputs"
+  type        = bool
+  default     = true
 }

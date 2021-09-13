@@ -1,7 +1,3 @@
-data "aws_iam_policy" "ssm" {
-  arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-}
-
 resource "aws_iam_policy" "efs" {
   count       = var.manage_worker_iam_resources && var.create_cluster ? 1 : 0
   name        = "${var.platform_name}-efs-provisioner-policy"
