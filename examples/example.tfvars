@@ -116,6 +116,7 @@ tenants = {
     asg_min_size                             = 3
     asg_max_size                             = 4
     asg_desired_capacity                     = 4
+    subnets                                  = ["subnet-00000000000000001"]
     kubelet_extra_args                       = "--node-labels=node.kubernetes.io/lifecycle=normal --node-labels=project=tenant2-name"
     suspended_processes                      = ["ReplaceUnhealthy"]
     root_volume_size                         = 40

@@ -50,22 +50,23 @@ locals {
     # worker groups launch templates defaults
     name                                     = "tenant-${random_string.suffix.result}"
     instance_type                            = "spot"
-    override_instance_types                  = var.spot_instance_types                           # A list of override instance types for mixed instances policy
-    on_demand_percentage_above_base_capacity = 0                                                 # Percentage split between on-demand and Spot instances above the base on-demand capacity
-    spot_instance_pools                      = 2                                                 # Number of Spot pools per availability zone to allocate capacity
-    asg_min_size                             = 2                                                 # Minimum worker capacity in the autoscaling group. Must be less or equal to desired_nodes_count
-    asg_max_size                             = 2                                                 # Maximum worker capacity in the autoscaling group
-    asg_desired_capacity                     = 2                                                 # Desired worker capacity in the autoscaling group
-    additional_userdata                      = var.add_userdata                                  # Userdata to append to the default userdata
-    kubelet_extra_args                       = "--node-labels=node.kubernetes.io/lifecycle=spot" # This string is passed directly to kubelet if set. Useful for adding labels or taints
-    suspended_processes                      = []                                                # A list of processes to suspend, i.e. ["AZRebalance", "HealthCheck", "ReplaceUnhealthy"]
-    public_ip                                = false                                             # Associate a public ip address with a worker
-    root_volume_size                         = 30                                                # Root volume size of workers instances
-    enable_monitoring                        = false                                             # Enables/disables detailed monitoring
-    key_name                                 = var.key_name                                      # The key pair name that should be used for the instances in the autoscaling group
-    iam_instance_profile_name                = var.worker_iam_instance_profile_name              # A custom IAM instance profile name. Can be used when manage_worker_iam_resources is set to false
-    iam_role_id                              = ""                                                # A custom IAM role id. Can be used when manage_worker_iam_resources is set to true
-    tags                                     = []                                                # A list of maps defining extra tags to be applied to the worker group autoscaling group, volumes and ENIs
+    override_instance_types                  = var.spot_instance_types                                                        # A list of override instance types for mixed instances policy
+    on_demand_percentage_above_base_capacity = 0                                                                              # Percentage split between on-demand and Spot instances above the base on-demand capacity
+    spot_instance_pools                      = 2                                                                              # Number of Spot pools per availability zone to allocate capacity
+    asg_min_size                             = 2                                                                              # Minimum worker capacity in the autoscaling group. Must be less or equal to desired_nodes_count
+    asg_max_size                             = 2                                                                              # Maximum worker capacity in the autoscaling group
+    asg_desired_capacity                     = 2                                                                              # Desired worker capacity in the autoscaling group
+    subnets                                  = var.create_vpc ? [module.vpc.private_subnets[0]] : [var.private_subnets_id[0]] # A list of subnets to place the worker nodes in. i.e. ["subnet-123", "subnet-456", "subnet-789"]
+    additional_userdata                      = var.add_userdata                                                               # Userdata to append to the default userdata
+    kubelet_extra_args                       = "--node-labels=node.kubernetes.io/lifecycle=spot"                              # This string is passed directly to kubelet if set. Useful for adding labels or taints
+    suspended_processes                      = []                                                                             # A list of processes to suspend, i.e. ["AZRebalance", "HealthCheck", "ReplaceUnhealthy"]
+    public_ip                                = false                                                                          # Associate a public ip address with a worker
+    root_volume_size                         = 30                                                                             # Root volume size of workers instances
+    enable_monitoring                        = false                                                                          # Enables/disables detailed monitoring
+    key_name                                 = var.key_name                                                                   # The key pair name that should be used for the instances in the autoscaling group
+    iam_instance_profile_name                = var.worker_iam_instance_profile_name                                           # A custom IAM instance profile name. Can be used when manage_worker_iam_resources is set to false
+    iam_role_id                              = ""                                                                             # A custom IAM role id. Can be used when manage_worker_iam_resources is set to true
+    tags                                     = []                                                                             # A list of maps defining extra tags to be applied to the worker group autoscaling group, volumes and ENIs
   }
 
   worker_groups_launch_template = []
@@ -93,6 +94,7 @@ locals {
       asg_min_size         = lookup(var.tenants[key], "asg_min_size", local.tenants_defaults["asg_min_size"])
       asg_max_size         = lookup(var.tenants[key], "asg_max_size", local.tenants_defaults["asg_max_size"])
       asg_desired_capacity = lookup(var.tenants[key], "asg_desired_capacity", local.tenants_defaults["asg_desired_capacity"])
+      subnets              = lookup(var.tenants[key], "subnets", local.tenants_defaults["subnets"])
       additional_userdata  = lookup(var.tenants[key], "additional_userdata", local.tenants_defaults["additional_userdata"])
       kubelet_extra_args = lookup(
         var.tenants[key],
