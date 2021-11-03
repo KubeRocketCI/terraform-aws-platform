@@ -83,7 +83,13 @@ resource "aws_iam_policy" "workers_amazon_ec2_container_registry_read_only" {
         {
             "Effect": "Allow",
             "Action": [
-                "ecr:GetAuthorizationToken",
+                "ecr:GetAuthorizationToken"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
                 "ecr:BatchCheckLayerAvailability",
                 "ecr:GetDownloadUrlForLayer",
                 "ecr:GetRepositoryPolicy",
@@ -96,7 +102,10 @@ resource "aws_iam_policy" "workers_amazon_ec2_container_registry_read_only" {
                 "ecr:ListTagsForResource",
                 "ecr:DescribeImageScanFindings"
             ],
-            "Resource": "arn:aws:ecr:${var.region}:${local.aws_account_id}:repository/${var.namespace}"
+            "Resource": [
+                "arn:aws:ecr:${var.region}:602401143452:repository/*",
+                "arn:aws:ecr:${var.region}:${local.aws_account_id}:repository/${var.namespace}/*"
+            ]
         }
     ]
 }
