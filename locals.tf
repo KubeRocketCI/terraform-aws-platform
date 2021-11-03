@@ -13,6 +13,31 @@ locals {
   cluster_iam_role_name_to_create = "ServiceRoleForEKS${replace(title(var.platform_name), "-", "")}Cluster"
   worker_iam_role_name_to_create  = "ServiceRoleForEKS${replace(title(var.platform_name), "-", "")}WorkerNode"
 
+  listeners = [
+    {
+      # ELB 443 port should point to nginx-ingress NodePort (32080) for HTTP traffic
+      instance_port      = "32080"
+      instance_protocol  = "http"
+      lb_port            = "443"
+      lb_protocol        = "https"
+      ssl_certificate_id = module.acm.acm_certificate_arn
+    },
+    {
+      # ELB 80 port should point to nginx-ingress NodePort (32080) for HTTP traffic
+      # Gerrit requires 80 port to be openned, since it's used by gerrit-jenkins plugin
+      instance_port     = "32080"
+      instance_protocol = "http"
+      lb_port           = "80"
+      lb_protocol       = "http"
+    },
+    {
+      instance_port     = "30022"
+      instance_protocol = "tcp"
+      lb_port           = "30022" # Gerrit port
+      lb_protocol       = "tcp"
+    }
+  ]
+
   target_groups = [
     {
       "name"                 = "${var.platform_name}-infra-alb-http"
