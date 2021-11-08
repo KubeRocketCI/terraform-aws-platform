@@ -11,7 +11,13 @@ module "iam_tenants_worker_groups" {
   attach_worker_cni_policy = lookup(var.tenants[each.key], "attach_worker_cni_policy", local.tenants_defaults["attach_worker_cni_policy"])
   attach_worker_efs_policy = lookup(var.tenants[each.key], "attach_worker_efs_policy", local.tenants_defaults["attach_worker_efs_policy"])
 
-  tags = var.tags
+  tags = merge(
+    var.tags,
+    {
+      for tag in lookup(var.tenants[each.key], "tags", local.tenants_defaults["tags"]) :
+      tag["key"] => tag["value"]
+    }
+  )
 }
 
 module "iam_tenants_kaniko" {
@@ -27,5 +33,11 @@ module "iam_tenants_kaniko" {
   oidc_provider_arn       = module.eks.oidc_provider_arn
   cluster_oidc_issuer_url = module.eks.cluster_oidc_issuer_url
 
-  tags = var.tags
+  tags = merge(
+    var.tags,
+    {
+      for tag in lookup(var.tenants[each.key], "tags", local.tenants_defaults["tags"]) :
+      tag["key"] => tag["value"]
+    }
+  )
 }
