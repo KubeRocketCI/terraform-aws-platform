@@ -53,11 +53,6 @@ resource "aws_iam_role_policy_attachment" "workers_AmazonEC2ContainerRegistryRea
   role       = aws_iam_role.workers.name
 }
 
-resource "aws_iam_role_policy_attachment" "workers_efs_provisioner" {
-  policy_arn = aws_iam_policy.workers_efs_provisioner.arn
-  role       = aws_iam_role.workers.name
-}
-
 resource "aws_iam_policy" "workers_amazon_ec2_container_registry_read_only" {
   name        = "${replace(title(var.platform_name), "-", "")}EC2ContainerRegistryReadOnly"
   description = "The read-only policy for ${var.platform_name} tenant registry"
@@ -93,49 +88,6 @@ resource "aws_iam_policy" "workers_amazon_ec2_container_registry_read_only" {
             ]
         }
     ]
-}
-EOF
-}
-
-resource "aws_iam_policy" "workers_efs_provisioner" {
-  name        = "${replace(title(var.platform_name), "-", "")}EFSProvisionerPolicy"
-  description = "The policy for EFS Provisioner for ${var.platform_name} tenant"
-
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "elasticfilesystem:DescribeAccessPoints",
-        "elasticfilesystem:DescribeFileSystems"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "elasticfilesystem:CreateAccessPoint"
-      ],
-      "Resource": "*",
-      "Condition": {
-        "StringLike": {
-          "aws:RequestTag/efs.csi.aws.com/cluster": "true"
-        }
-      }
-    },
-    {
-      "Effect": "Allow",
-      "Action": "elasticfilesystem:DeleteAccessPoint",
-      "Resource": "*",
-      "Condition": {
-        "StringEquals": {
-          "aws:ResourceTag/efs.csi.aws.com/cluster": "true"
-        }
-      }
-    }
-  ]
 }
 EOF
 }
