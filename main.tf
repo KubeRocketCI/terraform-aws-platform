@@ -44,7 +44,7 @@ module "alb" {
   version = "7.0.0"
 
   name            = "${var.platform_name}-ingress-alb"
-  security_groups = var.infrastructure_public_security_group_ids
+  security_groups = compact(concat(tolist([local.default_security_group_id]), var.infrastructure_public_security_group_ids))
   enable_http2    = false
   subnets         = module.vpc.public_subnets
   vpc_id          = module.vpc.vpc_id
@@ -82,7 +82,7 @@ module "elb" {
   name = format("%s-infra-external", var.platform_name)
 
   subnets         = module.vpc.public_subnets
-  security_groups = var.infrastructure_public_security_group_ids
+  security_groups = compact(concat(tolist([local.default_security_group_id]), var.infrastructure_public_security_group_ids))
   tags            = merge(var.tags, tomap({ "Name" = "${var.platform_name}-infra-external" }))
   internal        = false
   idle_timeout    = 300
