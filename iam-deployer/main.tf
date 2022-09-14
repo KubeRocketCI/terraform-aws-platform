@@ -1,3 +1,5 @@
+data "aws_caller_identity" "current" {}
+
 data "aws_iam_policy_document" "assume_role_policy" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -9,7 +11,7 @@ data "aws_iam_policy_document" "assume_role_policy" {
 
     principals {
       type        = "AWS"
-      identifiers = ["arn:aws:iam::${var.aws_root_account_id}:root"]
+      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
     }
   }
 }
@@ -19,6 +21,7 @@ resource "aws_iam_role" "deployer" {
   description           = "IAM role to assume in order to deploy and manage EKS cluster"
   assume_role_policy    = data.aws_iam_policy_document.assume_role_policy.json
   force_detach_policies = true
+  permissions_boundary  = var.iam_permissions_boundary_policy_arn
 
   inline_policy {
     name = "EKSDeployer"
@@ -181,5 +184,5 @@ resource "aws_iam_role" "deployer" {
       ]
     })
   }
-  tags = merge(var.tags, map("Name", var.deployer_role_name))
+  tags = merge(var.tags, tomap({ "Name" = var.deployer_role_name }))
 }
