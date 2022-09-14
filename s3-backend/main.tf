@@ -3,23 +3,29 @@ data "aws_caller_identity" "current" {}
 resource "aws_s3_bucket" "terraform_states" {
   bucket = "${var.s3_states_bucket_name}-${data.aws_caller_identity.current.account_id}"
 
-  versioning {
-    enabled = true
-  }
-
   lifecycle {
     prevent_destroy = true
   }
 
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
+  tags = merge(var.tags)
+}
+
+resource "aws_s3_bucket_versioning" "terraform_states" {
+  bucket = aws_s3_bucket.terraform_states.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "terraform_states" {
+  bucket = aws_s3_bucket.terraform_states.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
     }
   }
-
-  tags = merge(var.tags)
 }
 
 resource "aws_s3_bucket_policy" "terraform_states" {
@@ -75,5 +81,5 @@ resource "aws_dynamodb_table" "terraform_lock_table" {
     type = "S"
   }
 
-  tags = merge(var.tags, map("Name", var.table_name))
+  tags = merge(var.tags, tomap({ "Name" = var.table_name }))
 }

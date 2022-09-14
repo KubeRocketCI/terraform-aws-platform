@@ -3,11 +3,6 @@ variable "region" {
   type        = string
 }
 
-variable "aws_profile" {
-  description = "The AWS profile name to use for running terraform, look for the name in the ~/.aws/config local file"
-  type        = string
-}
-
 variable "s3_states_bucket_name" {
   description = "Prefix for S3 bucket name. Since the name should be unique the account number will be added as suffix, e.g. terraform-states-012345678910"
   type        = string
