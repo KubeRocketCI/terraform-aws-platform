@@ -1,5 +1,5 @@
 terraform {
-  required_version = "= 0.14.10"
+  required_version = "1.2.9"
 
   # Fill the gaps instead <...>
   backend "s3" {
@@ -14,41 +14,36 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "= 3.40.0"
-    }
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "~> 2.0.1"
+      version = ">= 4.30.0"
     }
     local = {
       source  = "hashicorp/local"
-      version = "2.1.0"
+      version = ">= 2.2.3"
     }
     null = {
       source  = "hashicorp/null"
-      version = "3.1.0"
+      version = ">= 3.1.1"
     }
-    random = {
-      source  = "hashicorp/random"
-      version = "3.1.0"
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 2.12.1"
     }
     template = {
       source  = "hashicorp/template"
-      version = "2.2.0"
+      version = ">= 2.2.0"
     }
   }
 }
 
 provider "aws" {
-  region  = var.region
-  profile = var.aws_profile
+  region = var.region
   assume_role {
     role_arn = var.role_arn
   }
 }
 
 provider "kubernetes" {
-  host                   = element(concat(data.aws_eks_cluster.cluster[*].endpoint, [""]), 0)
-  cluster_ca_certificate = base64decode(element(concat(data.aws_eks_cluster.cluster[*].certificate_authority.0.data, [""]), 0))
-  token                  = element(concat(data.aws_eks_cluster_auth.cluster[*].token, [""]), 0)
+  host                   = data.aws_eks_cluster.cluster.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
+  token                  = data.aws_eks_cluster_auth.cluster.token
 }

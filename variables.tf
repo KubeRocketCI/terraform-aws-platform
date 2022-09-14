@@ -1,15 +1,3 @@
-variable "create_vpc" {
-  description = "Whether to create a new VPC or use existing one"
-  type        = bool
-  default     = true
-}
-
-variable "create_cluster" {
-  description = "Whether to create EKS cluster and required stuff. Maybe set to false if there are any additional steps between VPC and EKS cluster deployment required"
-  type        = bool
-  default     = true
-}
-
 variable "create_elb" {
   description = "Whether to create ELB for Gerrit. The variable create_cluster = true is required"
   type        = bool
@@ -18,11 +6,6 @@ variable "create_elb" {
 
 variable "region" {
   description = "The AWS region to deploy the cluster into (e.g. eu-central-1)"
-  type        = string
-}
-
-variable "aws_profile" {
-  description = "The AWS profile name to use for running terraform, look for the name in the ~/.aws/config local file"
   type        = string
 }
 
@@ -41,16 +24,9 @@ variable "platform_domain_name" {
   type        = string
 }
 
-variable "wait_for_validation" {
-  description = "Whether to wait for the validation to complete"
-  type        = bool
-  default     = true
-}
-
-variable "vpc_id" {
-  description = "VPC id in which we deploy EKS cluster"
-  type        = string
-  default     = ""
+variable "infrastructure_public_security_group_ids" {
+  description = "Security groups to be attached to infrastructure LB."
+  type        = list(any)
 }
 
 variable "subnet_azs" {
@@ -76,42 +52,6 @@ variable "public_cidrs" {
   default     = []
 }
 
-variable "nat_public_cidrs" {
-  description = "List of public Elastic IPs created for AWS NAT Gateway"
-  type        = list(any)
-  default     = []
-}
-
-variable "private_subnets_id" {
-  description = "A list of subnets to place the EKS cluster and workers within"
-  type        = list(any)
-  default     = []
-}
-
-variable "public_subnets_id" {
-  description = "A list of subnets to place the LB and other external resources"
-  type        = list(any)
-  default     = []
-}
-
-variable "public_security_group_ids" {
-  description = "Security group IDs should be attached to external LB"
-  type        = list(any)
-  default     = []
-}
-
-variable "ingress_cidr_blocks" {
-  description = "List of IPv4 CIDR ranges to use on all ingress rules"
-  type        = list(string)
-  default     = []
-}
-
-variable "ingress_prefix_list_ids" {
-  description = "List of maps of prefix list IDs (for allowing access to VPC endpoints) to use on all ingress rules"
-  type        = list(map(string))
-  default     = []
-}
-
 variable "ssl_policy" {
   description = "Predefined SSL security policy for ALB https listeners"
   type        = string
@@ -121,7 +61,7 @@ variable "ssl_policy" {
 variable "cluster_version" {
   description = "EKS cluster version"
   type        = string
-  default     = "1.18"
+  default     = "1.22"
 }
 
 variable "key_name" {
@@ -135,40 +75,16 @@ variable "enable_irsa" {
   default     = false
 }
 
-variable "manage_cluster_iam_resources" {
-  description = "Whether to let the module manage cluster IAM resources. If set to false, cluster_iam_role_name must be specified"
-  type        = bool
-  default     = true
-}
-
 variable "cluster_iam_role_name" {
   description = "A cluster IAM role name (not ARN) to run EKS cluster"
   type        = string
   default     = ""
 }
 
-variable "manage_worker_iam_resources" {
-  description = "Whether to let the module manage worker IAM resources. If set to false, iam_instance_profile_name must be specified for workers"
-  type        = bool
-  default     = true
-}
-
 variable "worker_iam_instance_profile_name" {
   description = "An instance profile name (not ARN) to run EKS worker nodes"
   type        = string
   default     = ""
-}
-
-variable "kubeconfig_aws_authenticator_command" {
-  description = "Command to use to fetch AWS EKS credentials. Set to 'aws' if AWS CLI version is 1.16.156 or later"
-  type        = string
-  default     = "aws-iam-authenticator"
-}
-
-variable "kubeconfig_aws_authenticator_env_variables" {
-  description = "Environment variables that should be used when executing the authenticator. e.g. { AWS_PROFILE = \"aws_user\"}"
-  type        = map(string)
-  default     = {}
 }
 
 variable "add_userdata" {
@@ -201,26 +117,46 @@ variable "tags" {
   type        = map(any)
 }
 
+// Variables for demand pool
 variable "demand_instance_types" {
   description = "AWS instance type to build nodes for demand pool"
   type        = list(any)
   default     = ["r5.large"]
 }
 
+variable "demand_max_nodes_count" {
+  description = "Maximum demand nodes count in ASG"
+  default     = 0
+}
+
+variable "demand_desired_nodes_count" {
+  description = "Desired demand nodes count in ASG"
+  default     = 0
+}
+
+variable "demand_min_nodes_count" {
+  description = "Min on-demand nodes count in ASG" // Must be less or equal to desired_nodes_count
+  default     = 0
+}
+
+// Variables for spot pool
 variable "spot_instance_types" {
   description = "AWS instance type to build nodes for spot pool"
   type        = list(any)
   default     = ["r5.large", "m5.large", "t3.large"]
 }
 
-variable "tenants" {
-  description = "Inputs for worker groups launch temaplate in case of multitenancy deployment"
-  type        = any
-  default     = {}
+variable "spot_max_nodes_count" {
+  description = "Maximum spot nodes count in ASG"
+  default     = 0
 }
 
-variable "extended_outputs" {
-  description = "Whether to show extended outputs"
-  type        = bool
-  default     = true
+variable "spot_desired_nodes_count" {
+  description = "Desired spot nodes count in ASG"
+  default     = 0
+}
+
+variable "spot_min_nodes_count" {
+  description = "Desired spot nodes count in ASG"
+  default     = 0
 }
