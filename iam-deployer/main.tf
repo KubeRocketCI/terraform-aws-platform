@@ -184,5 +184,26 @@ resource "aws_iam_role" "deployer" {
       ]
     })
   }
+
+  inline_policy {
+    name = "EKSIdentityProviderFullAccess"
+
+    policy = jsonencode({
+      Version = "2012-10-17"
+      Statement = [
+        {
+          Action = [
+            "eks:DescribeIdentityProviderConfig",
+            "eks:AssociateIdentityProviderConfig",
+            "eks:ListIdentityProviderConfigs",
+            "eks:DisassociateIdentityProviderConfig"
+          ]
+          Effect   = "Allow"
+          Resource = "arn:aws:eks:*:${data.aws_caller_identity.current.account_id}:cluster/*"
+        },
+      ]
+    })
+  }
+
   tags = merge(var.tags, tomap({ "Name" = var.deployer_role_name }))
 }
