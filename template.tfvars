@@ -23,7 +23,7 @@ infrastructure_public_security_group_ids = [
 ssl_policy = "<SSL_POLICY>"
 
 # EKS cluster configuration
-cluster_version = "1.20"
+cluster_version = "1.22"
 key_name        = "<AWS_KEY_PAIR_NAME>" # must be created as a prerequisite
 enable_irsa     = true
 

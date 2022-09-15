@@ -30,7 +30,7 @@ ingress_prefix_list_ids = []
 public_security_group_ids = []
 
 # EKS cluster configuration
-cluster_version = "1.20"
+cluster_version = "1.22"
 key_name        = "test-kn" # must be created as a prerequisite
 enable_irsa     = true
 
