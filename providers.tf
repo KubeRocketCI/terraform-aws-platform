@@ -20,17 +20,9 @@ terraform {
       source  = "hashicorp/local"
       version = ">= 2.2.3"
     }
-    null = {
-      source  = "hashicorp/null"
-      version = ">= 3.1.1"
-    }
     kubernetes = {
       source  = "hashicorp/kubernetes"
       version = ">= 2.12.1"
-    }
-    template = {
-      source  = "hashicorp/template"
-      version = ">= 2.2.0"
     }
   }
 }
