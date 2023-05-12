@@ -1,7 +1,7 @@
 terraform {
-  required_version = "1.2.9"
 
-  # Fill the gaps instead <...>
+  required_version = "= 1.4.6"
+
   backend "s3" {
     bucket         = "terraform-states-<AWS_ACCOUNT_ID>"
     key            = "<PROJECT_NAME>/<REGION>/terraform/terraform.tfstate"
@@ -14,15 +14,11 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = ">= 4.30.0"
-    }
-    local = {
-      source  = "hashicorp/local"
-      version = ">= 2.2.3"
+      version = "~> 4.67.0"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = ">= 2.12.1"
+      version = ">= 2.20.0"
     }
   }
 }
@@ -35,7 +31,7 @@ provider "aws" {
 }
 
 provider "kubernetes" {
-  host                   = data.aws_eks_cluster.cluster.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
   token                  = data.aws_eks_cluster_auth.cluster.token
 }
