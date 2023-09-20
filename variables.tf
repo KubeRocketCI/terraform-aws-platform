@@ -126,16 +126,19 @@ variable "demand_instance_types" {
 
 variable "demand_max_nodes_count" {
   description = "Maximum demand nodes count in ASG"
+  type        = number
   default     = 0
 }
 
 variable "demand_desired_nodes_count" {
   description = "Desired demand nodes count in ASG"
+  type        = number
   default     = 0
 }
 
 variable "demand_min_nodes_count" {
   description = "Min on-demand nodes count in ASG" // Must be less or equal to desired_nodes_count
+  type        = number
   default     = 0
 }
 
@@ -148,15 +151,18 @@ variable "spot_instance_types" {
 
 variable "spot_max_nodes_count" {
   description = "Maximum spot nodes count in ASG"
+  type        = number
   default     = 0
 }
 
 variable "spot_desired_nodes_count" {
   description = "Desired spot nodes count in ASG"
+  type        = number
   default     = 0
 }
 
 variable "spot_min_nodes_count" {
   description = "Desired spot nodes count in ASG"
+  type        = number
   default     = 0
 }
