@@ -1,0 +1,54 @@
+configs:
+  ssh:
+    knownHosts: |
+      # -- list of known host in format:
+      # [host]:port key-type key
+      # Example
+      # [ssh.github.com]:443 ssh-rsa qgSdfOuiYhew/+afhQnvjfjhnhnqgSdfOuiYhew/+afhQnvjfjhnhn
+
+  rbac:
+    policy.csv:
+      # Policy rules are in the form:
+      #  p, subject, resource, action, object, effect
+      # Role definitions and bindings are in the form:
+      #  g, subject, inherited-subject
+      # policy.csv |
+      #   p, role:org-admin, applications, *, */*, allow
+      #   p, role:org-admin, clusters, get, *, allow
+      #   p, role:org-admin, repositories, *, *, allow
+      #   p, role:org-admin, logs, get, *, allow
+      #   p, role:org-admin, exec, create, */*, allow
+      #   g, your-github-org:your-team, role:org-admin
+
+      # default global admins
+      g, ArgoCDAdmins, role:admin
+
+redis-ha:
+  enabled: false
+
+controller:
+  enableStatefulSet: true
+
+server:
+  # -- Set replicas count
+  replicas: 1
+  extraArgs:
+    - "--insecure"
+  env:
+    - name: ARGOCD_API_SERVER_REPLICAS
+      value: '1'
+  ingress:
+    enabled: true
+    hosts:
+      - "argocd.example.com"
+
+repoServer:
+  # -- Set repo server count
+  replicas: 1
+
+# -- In EDP approach used Keycloak
+dex:
+  enabled: false
+
+applicationSet:
+  enabled: false

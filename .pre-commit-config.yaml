@@ -3,9 +3,15 @@ repos:
     rev: v1.75.0
     hooks:
       - id: terraform_fmt
+        name: Terraform fmt
       - id: terraform_docs
+        name: Terraform Docs
       - id: terraform_validate
+        name: Terraform validate
+        exclude: '^[^/]+$'
       - id: terraform_tflint
+        name: Terraform tflint
+        exclude: '^[^/]+$'
         args:
           - '--args=--only=terraform_deprecated_interpolation'
           - '--args=--only=terraform_deprecated_index'
