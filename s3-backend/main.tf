@@ -7,7 +7,7 @@ resource "aws_s3_bucket" "terraform_states" {
     prevent_destroy = true
   }
 
-  tags = merge(var.tags)
+  tags = merge(tomap({ "Name" = var.s3_states_bucket_name }), var.tags)
 }
 
 resource "aws_s3_bucket_versioning" "terraform_states" {
@@ -81,5 +81,5 @@ resource "aws_dynamodb_table" "terraform_lock_table" {
     type = "S"
   }
 
-  tags = merge(var.tags, tomap({ "Name" = var.table_name }))
+  tags = merge(tomap({ "Name" = var.table_name }), var.tags)
 }
