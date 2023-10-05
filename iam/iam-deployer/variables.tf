@@ -1,14 +1,3 @@
-variable "region" {
-  description = "The AWS region to deploy the cluster into, e.g. eu-central-1"
-  type        = string
-}
-
-variable "role_arn" {
-  description = "The AWS IAM role arn to assume for running terraform (e.g. arn:aws:iam::012345678910:role/EKSDeployerRole)"
-  type        = string
-  default     = ""
-}
-
 variable "deployer_role_name" {
   description = "The AWS IAM role name for EKS cluster deployment"
   type        = string
@@ -25,4 +14,10 @@ variable "iam_permissions_boundary_policy_arn" {
   description = "ARN for permission boundary to attach to IAM policies"
   type        = string
   default     = ""
+}
+
+variable "create_iam_deployer" {
+  description = "Whether to create IAM role for deployer pod"
+  type        = bool
+  default     = false
 }

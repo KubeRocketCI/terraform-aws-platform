@@ -1,22 +1,6 @@
-data "aws_caller_identity" "current" {}
-
-data "aws_iam_policy_document" "assume_role_policy" {
-  statement {
-    actions = ["sts:AssumeRole"]
-
-    principals {
-      type        = "Service"
-      identifiers = ["ec2.amazonaws.com"]
-    }
-
-    principals {
-      type        = "AWS"
-      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
-    }
-  }
-}
-
 resource "aws_iam_role" "deployer" {
+  count = var.create_iam_deployer ? 1 : 0
+
   name                  = var.deployer_role_name
   description           = "IAM role to assume in order to deploy and manage EKS cluster"
   assume_role_policy    = data.aws_iam_policy_document.assume_role_policy.json
@@ -40,14 +24,17 @@ resource "aws_iam_role" "deployer" {
             "autoscaling:CreateOrUpdateTags",
             "autoscaling:DeleteAutoScalingGroup",
             "autoscaling:DeleteLaunchConfiguration",
+            "autoscaling:DeleteScheduledAction",
             "autoscaling:DeleteTags",
             "autoscaling:Describe*",
             "autoscaling:DetachInstances",
             "autoscaling:DetachLoadBalancers",
             "autoscaling:DetachLoadBalancerTargetGroups",
+            "autoscaling:PutScheduledUpdateGroupAction",
             "autoscaling:SetDesiredCapacity",
-            "autoscaling:UpdateAutoScalingGroup",
+            "autoscaling:SetInstanceProtection",
             "autoscaling:SuspendProcesses",
+            "autoscaling:UpdateAutoScalingGroup",
             "ec2:AllocateAddress",
             "ec2:AssignPrivateIpAddresses",
             "ec2:Associate*",
@@ -59,6 +46,8 @@ resource "aws_iam_role" "deployer" {
             "ec2:CreateDhcpOptions",
             "ec2:CreateEgressOnlyInternetGateway",
             "ec2:CreateInternetGateway",
+            "ec2:CreateLaunchTemplate",
+            "ec2:CreateLaunchTemplateVersion",
             "ec2:CreateNatGateway",
             "ec2:CreateNetworkInterface",
             "ec2:CreateRoute",
@@ -72,6 +61,9 @@ resource "aws_iam_role" "deployer" {
             "ec2:DeleteDhcpOptions",
             "ec2:DeleteEgressOnlyInternetGateway",
             "ec2:DeleteInternetGateway",
+            "ec2:DeleteKeyPair",
+            "ec2:DeleteLaunchTemplate",
+            "ec2:DeleteLaunchTemplateVersions",
             "ec2:DeleteNatGateway",
             "ec2:DeleteNetworkInterface",
             "ec2:DeleteRoute",
@@ -87,40 +79,43 @@ resource "aws_iam_role" "deployer" {
             "ec2:DetachNetworkInterface",
             "ec2:DetachVolume",
             "ec2:Disassociate*",
+            "ec2:GetLaunchTemplateData",
+            "ec2:ImportKeyPair",
+            "ec2:ModifyLaunchTemplate",
             "ec2:ModifySubnetAttribute",
             "ec2:ModifyVpcAttribute",
             "ec2:ModifyVpcEndpoint",
             "ec2:ReleaseAddress",
+            "ec2:ReplaceRoute",
             "ec2:RevokeSecurityGroupEgress",
             "ec2:RevokeSecurityGroupIngress",
+            "ec2:RunInstances",
             "ec2:UpdateSecurityGroupRuleDescriptionsEgress",
             "ec2:UpdateSecurityGroupRuleDescriptionsIngress",
-            "ec2:CreateLaunchTemplate",
-            "ec2:CreateLaunchTemplateVersion",
-            "ec2:DeleteLaunchTemplate",
-            "ec2:DeleteLaunchTemplateVersions",
-            "ec2:Describe*",
-            "ec2:GetLaunchTemplateData",
-            "ec2:ModifyLaunchTemplate",
-            "ec2:RunInstances",
+            "eks:CreateAddon",
             "eks:CreateCluster",
+            "eks:CreateFargateProfile",
+            "eks:CreateNodegroup",
+            "eks:DeleteAddon",
             "eks:DeleteCluster",
+            "eks:DeleteFargateProfile",
+            "eks:DeleteNodegroup",
+            "eks:DescribeAddon",
+            "eks:DescribeAddonVersions",
             "eks:DescribeCluster",
-            "eks:ListClusters",
-            "eks:UpdateClusterConfig",
-            "eks:UpdateClusterVersion",
+            "eks:DescribeFargateProfile",
+            "eks:DescribeNodegroup",
             "eks:DescribeUpdate",
+            "eks:ListAddons",
+            "eks:ListClusters",
+            "eks:ListFargateProfiles",
+            "eks:ListNodegroups",
+            "eks:ListTagsForResource",
             "eks:TagResource",
             "eks:UntagResource",
-            "eks:ListTagsForResource",
-            "eks:CreateFargateProfile",
-            "eks:DeleteFargateProfile",
-            "eks:DescribeFargateProfile",
-            "eks:ListFargateProfiles",
-            "eks:CreateNodegroup",
-            "eks:DeleteNodegroup",
-            "eks:DescribeNodegroup",
-            "eks:ListNodegroups",
+            "eks:UpdateAddon",
+            "eks:UpdateClusterConfig",
+            "eks:UpdateClusterVersion",
             "eks:UpdateNodegroupConfig",
             "eks:UpdateNodegroupVersion",
             "elasticfilesystem:*",
@@ -129,10 +124,10 @@ resource "aws_iam_role" "deployer" {
             "iam:AttachRolePolicy",
             "iam:CreateInstanceProfile",
             "iam:CreateOpenIDConnectProvider",
-            "iam:CreateServiceLinkedRole",
             "iam:CreatePolicy",
             "iam:CreatePolicyVersion",
             "iam:CreateRole",
+            "iam:CreateServiceLinkedRole",
             "iam:DeleteInstanceProfile",
             "iam:DeleteOpenIDConnectProvider",
             "iam:DeletePolicy",
@@ -160,11 +155,6 @@ resource "aws_iam_role" "deployer" {
             "iam:UnTagPolicy",
             "iam:UnTagRole",
             "iam:UpdateAssumeRolePolicy",
-            "logs:CreateLogGroup",
-            "logs:DescribeLogGroups",
-            "logs:DeleteLogGroup",
-            "logs:ListTagsLogGroup",
-            "logs:PutRetentionPolicy",
             "kms:CreateAlias",
             "kms:CreateGrant",
             "kms:CreateKey",
@@ -175,8 +165,23 @@ resource "aws_iam_role" "deployer" {
             "kms:ListAliases",
             "kms:ListResourceTags",
             "kms:ScheduleKeyDeletion",
+            "logs:CreateLogGroup",
+            "logs:DeleteLogGroup",
+            "logs:DescribeLogGroups",
+            "logs:ListTagsLogGroup",
+            "logs:PutRetentionPolicy",
             "route53:*",
-            "s3:*"
+            "s3:*",
+            "secretsmanager:*",
+            "ssm:AddTagsToResource",
+            "ssm:DeleteParameter",
+            "ssm:DescribeParameters",
+            "ssm:GetParameter",
+            "ssm:GetParameters",
+            "ssm:ListTagsForResource",
+            "ssm:PutParameter",
+            "wafv2:*",
+            "autoscaling:StartInstanceRefresh",
           ]
           Effect   = "Allow"
           Resource = "*"

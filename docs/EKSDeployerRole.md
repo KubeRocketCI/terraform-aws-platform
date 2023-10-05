@@ -203,14 +203,94 @@ Put the main AWS account to the trusted entities to allow this role to be assume
 }
 ```
 
-3. Attach the created IAM policy to the Principal who is going to deploy the cluster. It can be AWS IAM user group, IAM user or IAM role.
+3. Example permisions boundary policy:
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "IAMRoleManagement",
+            "Effect": "Allow",
+            "Action": [
+                "iam:PutRolePermissionsBoundary",
+                "iam:CreateRole",
+                "iam:AttachRolePolicy",
+                "iam:PutRolePolicy"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "StringLike": {
+                    "iam:PermissionsBoundary": "arn:aws:iam::*:policy/eo_role_boundary"
+                }
+            }
+        },
+        {
+            "Sid": "DefaultRoleBoundary",
+            "Effect": "Allow",
+            "NotAction": [
+                "iam:DeactivateMFADevice",
+                "iam:CreateServiceSpecificCredential",
+                "iam:DeleteAccessKey",
+                "iam:UpdateOpenIDConnectProviderThumbprint",
+                "iam:CreateRole",
+                "iam:AttachRolePolicy",
+                "iam:SetSecurityTokenServicePreferences",
+                "iam:CreateLoginProfile",
+                "iam:CreateAccountAlias",
+                "iam:DeleteServerCertificate",
+                "iam:UploadSSHPublicKey",
+                "iam:ChangePassword",
+                "iam:UpdateLoginProfile",
+                "iam:UpdateServiceSpecificCredential",
+                "iam:CreateGroup",
+                "iam:RemoveClientIDFromOpenIDConnectProvider",
+                "iam:UpdateUser",
+                "iam:UpdateAccessKey",
+                "iam:UpdateSSHPublicKey",
+                "iam:UpdateServerCertificate",
+                "iam:DeleteSigningCertificate",
+                "iam:UpdateAccountPasswordPolicy",
+                "iam:PutRolePermissionsBoundary",
+                "iam:ResetServiceSpecificCredential",
+                "iam:DeleteSSHPublicKey",
+                "iam:CreateVirtualMFADevice",
+                "iam:CreateSAMLProvider",
+                "iam:DeleteRolePermissionsBoundary",
+                "iam:CreateUser",
+                "iam:CreateAccessKey",
+                "iam:EnableMFADevice",
+                "iam:ResyncMFADevice",
+                "iam:DeleteAccountAlias",
+                "iam:UpdateSAMLProvider",
+                "iam:DeleteLoginProfile",
+                "iam:UploadSigningCertificate",
+                "iam:PutUserPermissionsBoundary",
+                "budgets:*",
+                "iam:DeleteUser",
+                "iam:DeleteUserPermissionsBoundary",
+                "iam:UploadServerCertificate",
+                "iam:DeleteVirtualMFADevice",
+                "ec2:AcceptReservedInstancesExchangeQuote",
+                "iam:UpdateSigningCertificate",
+                "iam:AddClientIDToOpenIDConnectProvider",
+                "iam:DeleteServiceSpecificCredential",
+                "iam:DeleteSAMLProvider"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+```
+
+4. Attach the created IAM policy to the Principal who is going to deploy the cluster. It can be AWS IAM user group, IAM user or IAM role.
 
 Moreover, it's supposed that the Jenkins instance will assume the provided IAM role to deploy the EKS cluster in a customer account.
 
-4. Put the IAM role arn to the input variables in the `terraform.tfvars` file to assume it for EKS cluster deployment.
+5. Put the IAM role arn to the input variables in the `terraform.tfvars` file to assume it for EKS cluster deployment.
 
 ```
 role_arn = "arn:aws:iam::012345678910:role/EKSDeployerRole"
 ```
 
-5. Run the Terraform to apply the changes.
+6. Run the Terraform to apply the changes.
