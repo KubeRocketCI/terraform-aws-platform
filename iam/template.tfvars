@@ -15,7 +15,8 @@ region = "<REGION>" # mandatory
 
 # -- Information about boundary policies
 # -- https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html
-iam_permissions_boundary_policy_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:policy/eo_role_boundary" # mandatory
+deployer_iam_permissions_boundary_policy_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:policy/eo_role_boundary" # mandatory
+kaniko_iam_permissions_boundary_policy_arn   = "arn:aws:iam::<AWS_ACCOUNT_ID>:policy/eo_role_boundary" # mandatory
 
 tags = "" # isn't mandatory
 

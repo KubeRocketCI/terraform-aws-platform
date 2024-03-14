@@ -27,8 +27,14 @@ variable "tags" {
   default     = {}
 }
 
-variable "iam_permissions_boundary_policy_arn" {
-  description = "ARN for permission boundary to attach to IAM policies"
+variable "deployer_iam_permissions_boundary_policy_arn" {
+  description = "ARN for permission boundary to attach to the Deployer IAM Role"
+  type        = string
+  default     = ""
+}
+
+variable "kaniko_iam_permissions_boundary_policy_arn" {
+  description = "ARN for permission boundary to attach to the Kaniko IAM Role"
   type        = string
   default     = ""
 }

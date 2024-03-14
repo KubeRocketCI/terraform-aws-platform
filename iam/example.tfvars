@@ -13,7 +13,8 @@ create_iam_kaniko = false
 # -- e.g eu-central-1
 region = "eu-central-1" # mandatory
 
-iam_permissions_boundary_policy_arn = "arn:aws:iam::012345678910:policy/eo_role_boundary" # mandatory
+deployer_iam_permissions_boundary_policy_arn = "arn:aws:iam::012345678910:policy/eo_role_boundary" # mandatory
+kaniko_iam_permissions_boundary_policy_arn   = "arn:aws:iam::012345678910:policy/eo_role_boundary" # mandatory
 
 tags = { # isn't mandatory
   "SysName"     = "EPAM"

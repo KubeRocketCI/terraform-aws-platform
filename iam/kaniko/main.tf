@@ -14,6 +14,7 @@ resource "aws_iam_role" "kaniko" {
   description           = "IAM role to be used by Kaniko pod"
   assume_role_policy    = data.aws_iam_policy_document.kaniko_policy[0].json
   force_detach_policies = true
+  permissions_boundary  = var.iam_permissions_boundary_policy_arn
 
   inline_policy {
     name = "AWSIRSAOpenLegacyEdpKaniko"

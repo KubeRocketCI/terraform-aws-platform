@@ -38,3 +38,9 @@ variable "tags" {
   type        = map(any)
   default     = {}
 }
+
+variable "iam_permissions_boundary_policy_arn" {
+  description = "ARN for permission boundary to attach to IAM policies"
+  type        = string
+  default     = ""
+}
