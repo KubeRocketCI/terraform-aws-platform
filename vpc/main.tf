@@ -17,6 +17,22 @@ module "vpc" {
   enable_nat_gateway      = true
   single_nat_gateway      = true
   one_nat_gateway_per_az  = false
+  manage_default_network_acl = false
+
+  default_security_group_ingress = [
+    {
+      self = true
+    }
+  ]
+  default_security_group_egress = [
+    {
+      self        = false
+      cidr_blocks = "0.0.0.0/0"
+      from_port   = 0
+      to_port     = 0
+      protocol    = "-1"
+    }
+  ]
 
   tags = var.tags
 }
