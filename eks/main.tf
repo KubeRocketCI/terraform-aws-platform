@@ -22,7 +22,7 @@ module "alb" {
   vpc_id                = var.vpc_id
   subnets               = var.public_subnets_id
   create_security_group = false
-  security_groups       = var.infra_public_security_group_ids
+  security_groups       = compact(concat(tolist([local.cluster_security_group_id]), var.infra_public_security_group_ids))
   enable_http2          = false
 
   http_tcp_listeners = [
