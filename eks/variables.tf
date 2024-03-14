@@ -142,35 +142,3 @@ variable "cluster_identity_providers" {
   type        = any
   default     = {}
 }
-
-# Install argocd
-variable "enable_argocd" {
-  description = "Enable or disable Argo CD"
-  type        = bool
-  default     = false
-}
-
-# Indicates that ArgoCD is responsible for managing/deploying add-ons
-variable "argocd_manage_add_ons" {
-  description = "Manage Argo CD add-ons"
-  type        = bool
-  default     = false
-}
-
-# Private key name which using by ArgoCD to get chart
-variable "eks_addons_repo_ssh_key_secret_name" {
-  description = "Name of secret with ssh key for repository with add-ons"
-  type        = string
-}
-
-variable "repo_url" {
-  description = "Repo URL for repository with add-ons"
-  type        = string
-  default     = "git@github.com:epam/edp-cluster-add-ons.git"
-}
-
-variable "addons_path" {
-  description = "Path for folder with add-ons"
-  type        = string
-  default     = "chart"
-}

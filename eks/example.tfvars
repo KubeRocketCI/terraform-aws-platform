@@ -53,16 +53,6 @@ tags = {
   "BusinessUnit" = "EDP"
 }
 
-enable_argocd = true
-
-argocd_manage_add_ons = true
-
-eks_addons_repo_ssh_key_secret_name = "ssh-key"
-
-repo_url = "git@github.com:epam/edp-cluster-add-ons.git"
-
-addons_path = "chart"
-
 # OIDC Identity provider
 cluster_identity_providers = {
   keycloak = {

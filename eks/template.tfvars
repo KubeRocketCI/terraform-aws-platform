@@ -30,15 +30,5 @@ spot_instance_types = [] # list with instance types
 aws_auth_users = [] # -- AWS List users
 tags           = ""
 
-enable_argocd = true
-
-argocd_manage_add_ons = true
-
-eks_addons_repo_ssh_key_secret_name = "<AWS_SECRET_MANAGER_KEY>" # ssh key with add-ons repository
-
-repo_url = "<SSH_REPO_URL>" # repository with add-ons
-
-addons_path = "<ADD_ONS_FOLDER>" # path to add-ons folder at repository
-
 # OIDC Identity provider
 cluster_identity_providers = {}

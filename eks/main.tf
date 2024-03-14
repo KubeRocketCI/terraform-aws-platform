@@ -259,40 +259,6 @@ module "eks" {
   tags = local.tags
 }
 
-module "kubernetes_addons" {
-  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons?ref=v4.32.1"
-
-  eks_cluster_id                = module.eks.cluster_name
-  eks_cluster_endpoint          = module.eks.cluster_endpoint
-  eks_oidc_provider             = module.eks.oidc_provider
-  eks_cluster_version           = module.eks.cluster_version
-  irsa_iam_permissions_boundary = var.role_permissions_boundary_arn
-
-  # ArgoCD addon docs: https://github.com/aws-ia/terraform-aws-eks-blueprints/blob/main/docs/add-ons/argocd.md
-  # Example: https://github.com/aws-ia/terraform-aws-eks-blueprints/blob/main/examples/argocd/main.tf
-
-  # Enabled ArgoCD deploymend
-  enable_argocd         = var.enable_argocd
-  argocd_manage_add_ons = var.argocd_manage_add_ons
-  argocd_helm_config = {
-    repository = "https://argoproj.github.io/argo-helm"
-    values     = [file("${path.module}/values/argocd-values.yaml")]
-    version    = "5.33.2"
-  }
-  # Specify repository for ArgoCD
-  argocd_applications = {
-    eks-addons = {
-      path                = var.addons_path
-      repo_url            = var.repo_url
-      add_on_application  = true
-      ssh_key_secret_name = var.eks_addons_repo_ssh_key_secret_name
-      insecure            = false
-    }
-  }
-  tags = local.tags
-}
-
-
 module "aws_ebs_csi_driver_irsa" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
   version = "5.28.0"
