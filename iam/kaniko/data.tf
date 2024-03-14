@@ -16,7 +16,7 @@ data "aws_iam_policy_document" "kaniko_policy" {
       variable = "${local.oidc_issuer_url}:sub"
 
       values = [
-        "system:serviceaccount:${var.namespace}:edp-kaniko",
+        "system:serviceaccount:${var.namespace}:tekton",
       ]
     }
 
