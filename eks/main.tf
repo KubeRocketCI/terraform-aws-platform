@@ -92,7 +92,7 @@ module "records" {
 
 module "key_pair" {
   source  = "terraform-aws-modules/key-pair/aws"
-  version = "2.0.2"
+  version = "2.0.3"
 
   key_name              = format("%s-%s", local.cluster_name, "key-pair")
   private_key_algorithm = "ED25519"
