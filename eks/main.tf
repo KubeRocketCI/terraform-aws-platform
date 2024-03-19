@@ -1,9 +1,11 @@
 module "acm" {
   source  = "terraform-aws-modules/acm/aws"
-  version = "4.3.2"
+  version = "5.0.1"
 
   domain_name = var.platform_domain_name
   zone_id     = data.aws_route53_zone.this.zone_id
+
+  validation_method = "DNS"
 
   subject_alternative_names = [
     "${var.platform_name}.${var.platform_domain_name}",
