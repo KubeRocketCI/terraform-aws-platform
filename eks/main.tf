@@ -75,7 +75,7 @@ module "alb" {
 
 module "records" {
   source  = "terraform-aws-modules/route53/aws//modules/records"
-  version = "2.10.2"
+  version = "2.11.1"
 
   zone_name = var.platform_domain_name
   records = [
