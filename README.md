@@ -4,6 +4,8 @@ This project is primarily focused on creating and managing AWS EKS cluster and A
 
 `.pre-commit-config.yaml`: This file is used to configure pre-commit hooks. Pre-commit hooks are scripts that run automatically every time you make a commit. They are used to enforce certain code standards and prevent bad commits.
 
+`argp-cd`: This directory contains the Terraform scripts for creating and managing internal and external AWS IAM Roles for Argo CD.
+
 `docs/`: This directory contains the `EKSDeployerRole.md` file and provides information about the EKS Deployer Role.
 
 `eks/`: This directory contains Terraform scripts for creating and managing an EKS cluster. The .terraform-version file specifies the version of Terraform to use.
