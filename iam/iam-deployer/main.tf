@@ -155,6 +155,7 @@ resource "aws_iam_role" "deployer" {
             "iam:UnTagPolicy",
             "iam:UnTagRole",
             "iam:UpdateAssumeRolePolicy",
+            "iam:UpdateOpenIDConnectProviderThumbprint",
             "kms:CreateAlias",
             "kms:CreateGrant",
             "kms:CreateKey",
