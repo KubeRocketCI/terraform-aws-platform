@@ -130,6 +130,16 @@ variable "aws_auth_users" {
   default = []
 }
 
+variable "aws_auth_roles" {
+  description = "List of role maps to add to the aws-auth configmap"
+  type = list(object({
+    rolearn  = string
+    username = string
+    groups   = list(string)
+  }))
+  default = []
+}
+
 variable "tags" {
   description = "A map of tags to apply to all resources"
   type        = map(any)

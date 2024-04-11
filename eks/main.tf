@@ -103,7 +103,7 @@ module "key_pair" {
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "19.21.0"
+  version = "20.8.5"
 
   cluster_name                   = local.cluster_name
   cluster_version                = var.cluster_version
@@ -231,12 +231,6 @@ module "eks" {
     },
   }
 
-  # aws-auth configmap
-  create_aws_auth_configmap = true
-  manage_aws_auth_configmap = true
-
-  aws_auth_users = var.aws_auth_users
-
   # OIDC Identity provider
   cluster_identity_providers = var.cluster_identity_providers
 
@@ -259,6 +253,17 @@ module "eks" {
   }
 
   tags = local.tags
+}
+
+module "eks_aws_auth" {
+  source  = "terraform-aws-modules/eks/aws//modules/aws-auth"
+  version = "20.8.4"
+
+  create_aws_auth_configmap = true
+  manage_aws_auth_configmap = true
+
+  aws_auth_roles = var.aws_auth_roles
+  aws_auth_users = var.aws_auth_users
 }
 
 module "aws_ebs_csi_driver_irsa" {
