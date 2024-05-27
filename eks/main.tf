@@ -8,8 +8,7 @@ module "acm" {
   validation_method = "DNS"
 
   subject_alternative_names = [
-    "${var.platform_name}.${var.platform_domain_name}",
-    "*.${var.platform_name}.${var.platform_domain_name}",
+    "*.${var.platform_domain_name}",
   ]
 
   tags = merge(local.tags, tomap({ "Name" = var.platform_name }))
@@ -80,7 +79,7 @@ module "records" {
   zone_name = var.platform_domain_name
   records = [
     {
-      name = "*.${var.platform_name}"
+      name = "*"
       type = "A"
       alias = {
         name    = module.alb.lb_dns_name
