@@ -16,7 +16,7 @@ module "acm" {
 
 module "alb" {
   source  = "terraform-aws-modules/alb/aws"
-  version = "8.7.0"
+  version = "9.9.0"
 
   name = "${var.platform_name}-ingress-alb"
 
@@ -26,44 +26,53 @@ module "alb" {
   security_groups       = compact(concat(tolist([local.cluster_security_group_id]), var.infra_public_security_group_ids))
   enable_http2          = false
 
-  http_tcp_listeners = [
-    {
+  listeners = {
+    http-https-redirect = {
       port        = 80
       protocol    = "HTTP"
       action_type = "redirect"
       redirect = {
-        port        = "443"
+        port        = 443
         protocol    = "HTTPS"
         status_code = "HTTP_301"
       }
     }
-  ]
+    https = {
+      port            = 443
+      protocol        = "HTTPS"
+      ssl_policy      = var.ssl_policy
+      certificate_arn = module.acm.acm_certificate_arn
 
-  https_listeners = [
-    {
-      certificate_arn    = module.acm.acm_certificate_arn
-      port               = 443
-      target_group_index = 1
-      ssl_policy         = var.ssl_policy
+      forward = {
+        target_group_key = "https-instance"
+      }
     }
-  ]
+  }
 
-  target_groups = [
-    {
-      "name"                 = "${var.platform_name}-infra-alb-http"
-      "backend_port"         = "32080"
-      "backend_protocol"     = "HTTP"
-      "deregistration_delay" = "20"
-      "health_check_matcher" = "404"
-    },
-    {
-      "name"                 = "${var.platform_name}-infra-alb-https"
-      "backend_port"         = "32443"
-      "backend_protocol"     = "HTTPS"
-      "deregistration_delay" = "20"
-      "health_check_matcher" = "404"
-    },
-  ]
+  target_groups = {
+    http-instance = {
+      name                 = "${var.platform_name}-infra-alb-http"
+      port                 = 32080
+      protocol             = "HTTP"
+      deregistration_delay = 20
+      create_attachment    = false
+
+      health_check = {
+        matcher = 404
+      }
+    }
+    https-instance = {
+      name                 = "${var.platform_name}-infra-alb-https"
+      port                 = 32443
+      protocol             = "HTTPS"
+      deregistration_delay = 20
+      create_attachment    = false
+
+      health_check = {
+        matcher = 404
+      }
+    }
+  }
   idle_timeout = 500
   access_logs = {
     bucket = "prod-s3-elb-logs-eu-central-1"
@@ -74,7 +83,7 @@ module "alb" {
 
 module "records" {
   source  = "terraform-aws-modules/route53/aws//modules/records"
-  version = "2.11.1"
+  version = "3.1.0"
 
   zone_name = var.platform_domain_name
   records = [
@@ -82,8 +91,8 @@ module "records" {
       name = "*"
       type = "A"
       alias = {
-        name    = module.alb.lb_dns_name
-        zone_id = module.alb.lb_zone_id
+        name    = module.alb.dns_name
+        zone_id = module.alb.zone_id
       }
     }
   ]
@@ -102,11 +111,12 @@ module "key_pair" {
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "20.8.5"
+  version = "20.14.0"
 
-  cluster_name                   = local.cluster_name
-  cluster_version                = var.cluster_version
-  cluster_endpoint_public_access = true
+  enable_cluster_creator_admin_permissions = true
+  cluster_name                             = local.cluster_name
+  cluster_version                          = var.cluster_version
+  cluster_endpoint_public_access           = true
 
   create_iam_role               = true
   iam_role_use_name_prefix      = false
@@ -130,7 +140,7 @@ module "eks" {
     instance_type                 = "r5.large"
     subnet_ids                    = [var.private_subnets_id[1]] # deploy in eu-central-1b
     post_bootstrap_user_data      = var.add_userdata
-    target_group_arns             = module.alb.target_group_arns
+    target_group_arns             = [module.alb.target_groups[ "http-instance" ].arn, module.alb.target_groups[ "https-instance" ].arn]
     key_name                      = module.key_pair.key_pair_name
     enable_monitoring             = false
     use_mixed_instances_policy    = true
@@ -256,7 +266,7 @@ module "eks" {
 
 module "eks_aws_auth" {
   source  = "terraform-aws-modules/eks/aws//modules/aws-auth"
-  version = "20.8.4"
+  version = "20.14.0"
 
   create_aws_auth_configmap = true
   manage_aws_auth_configmap = true
@@ -267,7 +277,7 @@ module "eks_aws_auth" {
 
 module "aws_ebs_csi_driver_irsa" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version = "5.37.1"
+  version = "5.39.1"
 
   role_name                     = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_EBS_CSI_Driver"
   role_permissions_boundary_arn = var.role_permissions_boundary_arn
@@ -287,7 +297,7 @@ module "aws_ebs_csi_driver_irsa" {
 
 module "vpc_cni_irsa" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version = "5.37.1"
+  version = "5.39.1"
 
   role_name                     = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_VPC_CNI"
   role_permissions_boundary_arn = var.role_permissions_boundary_arn
@@ -306,7 +316,7 @@ module "vpc_cni_irsa" {
 
 module "externalsecrets_irsa" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version = "5.37.1"
+  version = "5.39.1"
 
   role_name                     = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_ExternalSecretOperatorAccess"
   assume_role_condition_test    = "StringLike"
