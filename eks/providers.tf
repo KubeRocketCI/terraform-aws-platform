@@ -1,6 +1,6 @@
 terraform {
 
-  required_version = "= 1.5.4"
+  required_version = ">= 1.5.4, < 1.6.0"
 
   backend "s3" {
     bucket         = "terraform-states-<ACCOUNT_ID>"
@@ -14,11 +14,11 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = ">= 5.8.0"
+      version = ">= 5.54.1"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = ">= 2.22.0"
+      version = ">= 2.31.0"
     }
     kubectl = {
       source  = "gavinbunney/kubectl"
