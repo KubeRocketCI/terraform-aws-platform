@@ -4,7 +4,7 @@ This project is primarily focused on creating and managing AWS EKS cluster and A
 
 `.pre-commit-config.yaml`: This file is used to configure pre-commit hooks. Pre-commit hooks are scripts that run automatically every time you make a commit. They are used to enforce certain code standards and prevent bad commits.
 
-`argp-cd`: This directory contains the Terraform scripts for creating and managing internal and external AWS IAM Roles for Argo CD.
+`argo-cd/`: This directory contains the Terraform scripts for creating and managing internal and external AWS IAM Roles for Argo CD.
 
 `docs/`: This directory contains the `EKSDeployerRole.md` file and provides information about the EKS Deployer Role.
 
@@ -22,7 +22,7 @@ This project is primarily focused on creating and managing AWS EKS cluster and A
 
 Each of these components plays a crucial role in the project. The eks/, iam/, and vpc/ directories are particularly important as they contain the Terraform scripts for creating and managing the main resources of the project.
 
-You can follow our [official documentation](https://epam.github.io/edp-install/operator-guide/deploy-aws-eks/) to get started with the deployment.
+You can follow our [official documentation](https://docs.kuberocketci.io./docs/operator-guide/infrastructure-providers/aws/deploy-aws-eks) to get started with the deployment.
 
 ## Pre-Requisites
 
