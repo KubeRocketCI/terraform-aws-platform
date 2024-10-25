@@ -6,7 +6,7 @@ This project is primarily focused on creating and managing AWS EKS cluster and A
 
 `argo-cd/`: This directory contains the Terraform scripts for creating and managing internal and external AWS IAM Roles for Argo CD.
 
-`docs/`: This directory contains the `EKSDeployerRole.md` file and provides information about the EKS Deployer Role.
+`docs/`: This directory contains the `KRCIDeployerRole.md` file and provides information about the EKS Deployer Role.
 
 `eks/`: This directory contains Terraform scripts for creating and managing an EKS cluster. The .terraform-version file specifies the version of Terraform to use.
 
@@ -26,7 +26,7 @@ You can follow our [official documentation](https://docs.kuberocketci.io./docs/o
 
 ## Pre-Requisites
 
-You need to have Terraform installed on your machine. Also, you should have an AWS account and the necessary [IAM role](./docs/EKSDeployerRole.md) with permissions to create and manage AWS resources.
+You need to have Terraform installed on your machine. Also, you should have an AWS account and the necessary [IAM role](./docs/KRCIDeployerRole.md) with permissions to create and manage AWS resources.
 
 ## Installation
 

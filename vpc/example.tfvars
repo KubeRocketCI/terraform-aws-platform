@@ -3,7 +3,7 @@
 
 region = "eu-central-1"
 
-role_arn = "arn:aws:iam::0123456789:role/EKSDeployerRole"
+role_arn = "arn:aws:iam::0123456789:role/KRCIDeployerRole"
 
 platform_name = "eks-test"
 
@@ -16,7 +16,7 @@ private_cidrs = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
 public_cidrs = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
 
 tags = {
-  "SysName"     = "EPAM"
+  "SysName"     = "KubeRocketCI"
   "Environment" = "EKS-TEST-CLUSTER"
   "Project"     = "EDP"
 }

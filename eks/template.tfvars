@@ -2,7 +2,7 @@ region               = "<REGION>"
 platform_name        = "<PLATFORM_NAME>"
 platform_domain_name = "<PLATFORM_DNS>"
 
-role_arn                      = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/EKSDeployerRole"
+role_arn                      = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/KRCIDeployerRole"
 role_permissions_boundary_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:policy/eo_role_boundary"
 
 vpc_id             = "<VPC_ID>" # VPC ID

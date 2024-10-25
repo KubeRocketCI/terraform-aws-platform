@@ -165,7 +165,7 @@ There are the minimum AWS IAM permissions required for an IAM user or IAM role t
 
 ### How to use AWS IAM role
 
-1. Create AWS IAM role with the permissions listed above in the AWS account where EKS cluster is going to be deployed, e.g. `arn:aws:iam::012345678910:role/EKSDeployerRole`.
+1. Create AWS IAM role with the permissions listed above in the AWS account where EKS cluster is going to be deployed, e.g. `arn:aws:iam::012345678910:role/KRCIDeployerRole`.
 Put the main AWS account to the trusted entities to allow this role to be assumed, such as:
 
 ```json
@@ -197,7 +197,7 @@ Put the main AWS account to the trusted entities to allow this role to be assume
             "Action": [
                 "sts:AssumeRole"
             ],
-            "Resource": "arn:aws:iam::012345678910:role/EKSDeployerRole"
+            "Resource": "arn:aws:iam::012345678910:role/KRCIDeployerRole"
         }
     ]
 }
@@ -290,7 +290,7 @@ Moreover, it's supposed that the Jenkins instance will assume the provided IAM r
 5. Put the IAM role arn to the input variables in the `terraform.tfvars` file to assume it for EKS cluster deployment.
 
 ```
-role_arn = "arn:aws:iam::012345678910:role/EKSDeployerRole"
+role_arn = "arn:aws:iam::012345678910:role/KRCIDeployerRole"
 ```
 
 6. Run the Terraform to apply the changes.

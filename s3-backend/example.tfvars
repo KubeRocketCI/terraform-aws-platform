@@ -3,7 +3,7 @@
 region = "eu-central-1" # mandatory
 
 tags = { # isn't mandatory
-  "SysName"     = "EPAM"
+  "SysName"     = "KubeRocketCI"
   "Environment" = "EKS-TEST-CLUSTER"
   "Project"     = "EDP"
 }

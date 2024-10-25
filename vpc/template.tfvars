@@ -4,7 +4,7 @@
 # -- e.g eu-central-1
 region = "<REGION>"
 
-role_arn = "arn:aws:iam::<ACCOUNT_ID>:role/EKSDeployerRole"
+role_arn = "arn:aws:iam::<ACCOUNT_ID>:role/KRCIDeployerRole"
 
 platform_name = "<PLATFORM_NAME>"
 

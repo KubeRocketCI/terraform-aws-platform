@@ -17,7 +17,7 @@ variable "platform_name" {
 }
 
 variable "role_arn" {
-  description = "The AWS IAM role arn to assume for running terraform (e.g. arn:aws:iam::012345678910:role/EKSDeployerRole)"
+  description = "The AWS IAM role arn to assume for running terraform (e.g. arn:aws:iam::012345678910:role/KRCIDeployerRole)"
   type        = string
   default     = ""
 }

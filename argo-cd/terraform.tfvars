@@ -22,6 +22,6 @@ argocd_agent_argocd_master_role_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/AWSIRS
 #---------------------------------------------#
 platform_name                 = "<PLATFORM_NAME>"
 region                        = "<REGION>"
-role_arn                      = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/EKSDeployerRole"
+role_arn                      = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/KRCIDeployerRole"
 role_permissions_boundary_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:policy/eo_role_boundary"
 tags                          = {}

@@ -2,7 +2,7 @@ region               = "eu-central-1"
 platform_name        = "eks-test"
 platform_domain_name = "example.com"
 
-role_arn                      = "arn:aws:iam::012345678910:role/EKSDeployerRole"
+role_arn                      = "arn:aws:iam::012345678910:role/KRCIDeployerRole"
 role_permissions_boundary_arn = "arn:aws:iam::012345678910:policy/eo_role_boundary"
 
 vpc_id             = "vpc-053a2853a6b2649da"
@@ -47,7 +47,7 @@ aws_auth_users = [
   }
 ]
 tags = {
-  "SysName"      = "EPAM"
+  "SysName"      = "KubeRocketCI"
   "Environment"  = "EKS-TEST-CLUSTER"
   "CostCenter"   = "2023"
   "BusinessUnit" = "EDP"

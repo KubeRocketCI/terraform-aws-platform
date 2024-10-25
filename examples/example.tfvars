@@ -4,7 +4,7 @@ create_elb     = true # set to true if you'd like to create ELB for Gerrit usage
 
 region      = "eu-central-1"
 aws_profile = "aws_user"
-role_arn    = "arn:aws:iam::012345678910:role/EKSDeployerRole"
+role_arn    = "arn:aws:iam::012345678910:role/KRCIDeployerRole"
 
 platform_name        = "test-eks"
 platform_domain_name = "example.com" # must be created as a prerequisite

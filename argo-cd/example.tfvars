@@ -22,7 +22,7 @@ argocd_agent_argocd_master_role_arn = "arn:aws:iam::012345678910:role/AWSIRSA_Sh
 #---------------------------------------------#
 platform_name                 = "shared"
 region                        = "eu-central-1"
-role_arn                      = "arn:aws:iam::012345678910:role/EKSDeployerRole"
+role_arn                      = "arn:aws:iam::012345678910:role/KRCIDeployerRole"
 role_permissions_boundary_arn = "arn:aws:iam::012345678910:policy/eo_role_boundary"
 tags = {
   "Environment" = "EKS-TEST-CLUSTER"
