@@ -14,7 +14,7 @@ resource "aws_iam_policy" "argocd_irsa_policy" {
 # to provision resources in remote eks clusters
 module "argocd_irsa" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version = "5.28.0"
+  version = "5.47.1"
 
   create_role = local.argocd_master_is_enabled
 
