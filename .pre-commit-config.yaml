@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/antonbabenko/pre-commit-terraform
-    rev: v1.83.4
+    rev: v1.96.1
     hooks:
       - id: terraform_fmt
         name: Terraform fmt
@@ -13,7 +13,8 @@ repos:
         name: Terraform tflint
         exclude: '^[^/]+$'
         args:
-          - '--args=--module'
+          - '--hook-config=--delegate-chdir'
+          - '--args=--call-module-type=all'
           - '--args=--disable-rule=terraform_required_version'
           - '--args=--only=terraform_deprecated_interpolation'
           - '--args=--only=terraform_deprecated_index'

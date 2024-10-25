@@ -138,9 +138,9 @@ module "eks" {
   # Self Managed Node Group(s)
   self_managed_node_group_defaults = {
     instance_type                 = "r5.large"
-    subnet_ids                    = [var.private_subnets_id[1]] # deploy in eu-central-1b
+    subnet_ids                    = [var.private_subnets_id] # set [var.private_subnets_id[1]] to deploy in eu-central-1b
     post_bootstrap_user_data      = var.add_userdata
-    target_group_arns             = [module.alb.target_groups[ "http-instance" ].arn, module.alb.target_groups[ "https-instance" ].arn]
+    target_group_arns             = [module.alb.target_groups["http-instance"].arn, module.alb.target_groups["https-instance"].arn]
     key_name                      = module.key_pair.key_pair_name
     enable_monitoring             = false
     use_mixed_instances_policy    = true

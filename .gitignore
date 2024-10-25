@@ -19,6 +19,12 @@ kubeconfig_*
 *.tfstate.*
 *.tfplan
 
+# We need keep state for simple deploy
+!/s3-backend/terraform.tfstate
+!/s3-backend/terraform.tfstate.backup
+!/iam/terraform.tfstate
+!/iam/terraform.tfstate.backup
+
 # Crash log files
 crash.log
 

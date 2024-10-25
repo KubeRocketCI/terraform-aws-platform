@@ -12,7 +12,7 @@ This project is primarily focused on creating and managing AWS EKS cluster and A
 
 `examples/`: This directory contains example .tfvars files that can be used as templates for creating your own .tfvars files.
 
-`iam/`: This directory contains Terraform scripts for creating and managing IAM roles. The iam-deployer/ and kaniko/ directories inside this directory contain specific scripts for the IAM Deployer and Kaniko roles respectively.
+`iam/`: This directory contains Terraform scripts for creating and managing IAM role to deploy platform.
 
 `LICENSE`: This is the license file for the project. It specifies the terms under which others can use, modify, and distribute your software.
 
