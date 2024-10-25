@@ -1,6 +1,6 @@
 module "acm" {
   source  = "terraform-aws-modules/acm/aws"
-  version = "5.0.1"
+  version = "5.1.1"
 
   domain_name = var.platform_domain_name
   zone_id     = data.aws_route53_zone.this.zone_id
@@ -16,7 +16,7 @@ module "acm" {
 
 module "alb" {
   source  = "terraform-aws-modules/alb/aws"
-  version = "9.9.0"
+  version = "9.12.0"
 
   name = "${var.platform_name}-ingress-alb"
 
@@ -83,7 +83,7 @@ module "alb" {
 
 module "records" {
   source  = "terraform-aws-modules/route53/aws//modules/records"
-  version = "3.1.0"
+  version = "4.1.0"
 
   zone_name = var.platform_domain_name
   records = [
@@ -111,7 +111,7 @@ module "key_pair" {
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "20.14.0"
+  version = "20.26.0"
 
   enable_cluster_creator_admin_permissions = true
   cluster_name                             = local.cluster_name
@@ -266,7 +266,7 @@ module "eks" {
 
 module "eks_aws_auth" {
   source  = "terraform-aws-modules/eks/aws//modules/aws-auth"
-  version = "20.14.0"
+  version = "20.26.0"
 
   create_aws_auth_configmap = true
   manage_aws_auth_configmap = true
@@ -277,7 +277,7 @@ module "eks_aws_auth" {
 
 module "aws_ebs_csi_driver_irsa" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version = "5.39.1"
+  version = "5.47.1"
 
   role_name                     = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_EBS_CSI_Driver"
   role_permissions_boundary_arn = var.role_permissions_boundary_arn
@@ -297,7 +297,7 @@ module "aws_ebs_csi_driver_irsa" {
 
 module "vpc_cni_irsa" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version = "5.39.1"
+  version = "5.47.1"
 
   role_name                     = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_VPC_CNI"
   role_permissions_boundary_arn = var.role_permissions_boundary_arn
@@ -316,7 +316,7 @@ module "vpc_cni_irsa" {
 
 module "externalsecrets_irsa" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version = "5.39.1"
+  version = "5.47.1"
 
   role_name                     = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_ExternalSecretOperatorAccess"
   assume_role_condition_test    = "StringLike"
