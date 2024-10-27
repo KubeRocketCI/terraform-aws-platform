@@ -10,8 +10,6 @@ This project is primarily focused on creating and managing AWS EKS cluster and A
 
 `eks/`: This directory contains Terraform scripts for creating and managing an EKS cluster. The .terraform-version file specifies the version of Terraform to use.
 
-`examples/`: This directory contains example .tfvars files that can be used as templates for creating your own .tfvars files.
-
 `iam/`: This directory contains Terraform scripts for creating and managing IAM role to deploy platform.
 
 `LICENSE`: This is the license file for the project. It specifies the terms under which others can use, modify, and distribute your software.
