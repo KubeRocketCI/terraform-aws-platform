@@ -4,11 +4,15 @@ repos:
     hooks:
       - id: terraform_fmt
         name: Terraform fmt
+        args:
+          - --hook-config=--parallelism-ci-cpu-cores=1
       - id: terraform_docs
         name: Terraform Docs
       - id: terraform_validate
         name: Terraform validate
         exclude: '^[^/]+$'
+        args:
+          - --hook-config=--parallelism-ci-cpu-cores=1
       - id: terraform_tflint
         name: Terraform tflint
         exclude: '^[^/]+$'

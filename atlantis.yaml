@@ -1,0 +1,62 @@
+version: 3
+abort_on_execution_order_fail: true
+parallel_plan: false
+parallel_apply: false
+# The below is the default configuration for autodiscover.mode. When autodiscover.mode is auto, projects will be discovered only if the repo has no projects configured
+# autodiscover:
+#   mode: "auto"
+delete_source_branch_on_merge: true
+# Automatically merges pull request when all plans are applied.
+automerge: false
+projects:
+  - name: s3-backend
+    dir: s3-backend
+    terraform_version: "1.5.4"
+    workflow: infra
+    execution_order_group: 1
+    workspace: default
+    autoplan:
+      enabled: true
+      when_modified: ["*.tf", "terraform.tfvars"]
+  - name: iam
+    dir: iam
+    terraform_version: "1.5.4"
+    workflow: infra
+    execution_order_group: 2
+    workspace: default
+    depends_on: ["s3-backend"]
+    autoplan:
+      enabled: true
+      when_modified: ["*.tf", "terraform.tfvars"]
+  - name: vpc
+    dir: vpc
+    terraform_version: "1.5.4"
+    workflow: infra
+    execution_order_group: 3
+    workspace: default
+    depends_on: ["iam"]
+    autoplan:
+      enabled: true
+      when_modified: ["*.tf", "terraform.tfvars"]
+  - name: eks
+    dir: eks
+    terraform_version: "1.5.4"
+    workflow: infra
+    execution_order_group: 4
+    workspace: default
+    depends_on: ["vpc"]
+    autoplan:
+      enabled: true
+      when_modified: ["*.tf", "terraform.tfvars"]
+
+workflows:
+  infra:
+    plan:
+      steps:
+        - init
+        - run: pre-commit run -a
+        - plan
+    apply:
+      steps:
+        - init
+        - apply
