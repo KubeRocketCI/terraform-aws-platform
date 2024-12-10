@@ -22,9 +22,16 @@ variable "role_arn" {
   default     = ""
 }
 
+variable "create_iam_kaniko" {
+  description = "Enable or disable the creation of IAM role and policy for Kaniko"
+  type        = bool
+  default     = false
+}
+
 variable "kaniko_ecr_repository_arn" {
   description = "The ARN of the ECR repository used by Kaniko"
   type        = string
+  default     = ""
 }
 
 variable "platform_domain_name" {

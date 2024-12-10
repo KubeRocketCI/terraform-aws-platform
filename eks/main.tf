@@ -338,6 +338,7 @@ module "externalsecrets_irsa" {
 }
 
 module "kaniko_iam_role" {
+  count   = var.create_iam_kaniko ? 1 : 0
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
   version = "5.47.1"
 
@@ -345,7 +346,7 @@ module "kaniko_iam_role" {
   assume_role_condition_test = "StringLike"
 
   role_policy_arns = {
-    policy = module.kaniko_iam_policy.arn
+    policy = module.kaniko_iam_policy[0].arn
   }
 
   oidc_providers = {
@@ -359,6 +360,7 @@ module "kaniko_iam_role" {
 }
 
 module "kaniko_iam_policy" {
+  count   = var.create_iam_kaniko ? 1 : 0
   source  = "terraform-aws-modules/iam/aws//modules/iam-policy"
   version = "5.47.1"
 
