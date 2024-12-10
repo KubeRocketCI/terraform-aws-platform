@@ -4,7 +4,8 @@ platform_domain_name = "<PLATFORM_DNS>"
 
 role_arn                      = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/KRCIDeployerRole"
 role_permissions_boundary_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:policy/eo_role_boundary"
-kaniko_ecr_repository_arn     = "arn:aws:ecr:<REGION>:<AWS_ACCOUNT_ID>:repository/*"
+
+create_kaniko_iam_role = false # Create IAM role for Kaniko
 
 vpc_id             = "<VPC_ID>" # VPC ID
 private_subnets_id = []         # EKS must have two subnets.

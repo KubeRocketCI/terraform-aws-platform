@@ -341,6 +341,8 @@ module "kaniko_iam_role" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
   version = "5.47.1"
 
+  create_role = var.create_kaniko_iam_role
+
   role_name                  = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_KanikoAccess"
   assume_role_condition_test = "StringLike"
 
@@ -362,6 +364,8 @@ module "kaniko_iam_policy" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-policy"
   version = "5.47.1"
 
+  create_policy = var.create_kaniko_iam_role
+
   name        = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_KanikoAccess"
   path        = "/"
   description = "IAM policy granting access to ECR and CloudTrail for Kaniko"
@@ -375,7 +379,7 @@ module "kaniko_iam_policy" {
           "cloudtrail:LookupEvents"
         ]
         Effect   = "Allow"
-        Resource = var.kaniko_ecr_repository_arn
+        Resource = "arn:aws:ecr:${var.region}:${data.aws_caller_identity.current.account_id}:repository/*"
       },
       {
         Action   = "ecr:GetAuthorizationToken"
@@ -388,7 +392,7 @@ module "kaniko_iam_policy" {
           "ecr:CreateRepository"
         ]
         Effect   = "Allow"
-        Resource = var.kaniko_ecr_repository_arn
+        Resource = "arn:aws:ecr:${var.region}:${data.aws_caller_identity.current.account_id}:repository/*"
       }
     ]
   })
