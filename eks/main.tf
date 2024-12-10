@@ -336,3 +336,62 @@ module "externalsecrets_irsa" {
   }
   tags = local.tags
 }
+
+module "kaniko_iam_role" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "5.47.1"
+
+  role_name                  = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_KanikoAccess"
+  assume_role_condition_test = "StringLike"
+
+  role_policy_arns = {
+    policy = module.kaniko_iam_policy.arn
+  }
+
+  oidc_providers = {
+    main = {
+      provider_arn               = module.eks.oidc_provider_arn
+      namespace_service_accounts = ["*"]
+    }
+  }
+
+  tags = local.tags
+}
+
+module "kaniko_iam_policy" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-policy"
+  version = "5.47.1"
+
+  name        = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_KanikoAccess"
+  path        = "/"
+  description = "IAM policy granting access to ECR and CloudTrail for Kaniko"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "ecr:*",
+          "cloudtrail:LookupEvents"
+        ]
+        Effect   = "Allow"
+        Resource = var.kaniko_ecr_repository_arn
+      },
+      {
+        Action   = "ecr:GetAuthorizationToken"
+        Effect   = "Allow"
+        Resource = "*"
+      },
+      {
+        Action = [
+          "ecr:DescribeRepositories",
+          "ecr:CreateRepository"
+        ]
+        Effect   = "Allow"
+        Resource = var.kaniko_ecr_repository_arn
+      }
+    ]
+  })
+
+  tags = local.tags
+}
