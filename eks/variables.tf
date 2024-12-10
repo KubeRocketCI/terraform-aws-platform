@@ -22,6 +22,11 @@ variable "role_arn" {
   default     = ""
 }
 
+variable "kaniko_ecr_repository_arn" {
+  description = "The ARN of the ECR repository used by Kaniko"
+  type        = string
+}
+
 variable "platform_domain_name" {
   description = "The name of existing DNS zone for platform"
   type        = string
