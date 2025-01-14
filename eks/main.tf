@@ -61,17 +61,6 @@ module "alb" {
         matcher = 404
       }
     }
-    https-instance = {
-      name                 = "${var.platform_name}-infra-alb-https"
-      port                 = 32443
-      protocol             = "HTTPS"
-      deregistration_delay = 20
-      create_attachment    = false
-
-      health_check = {
-        matcher = 404
-      }
-    }
   }
   idle_timeout = 500
   access_logs = {
@@ -111,7 +100,7 @@ module "key_pair" {
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "20.26.0"
+  version = "20.30.1"
 
   enable_cluster_creator_admin_permissions = true
   cluster_name                             = local.cluster_name
@@ -137,10 +126,11 @@ module "eks" {
 
   # Self Managed Node Group(s)
   self_managed_node_group_defaults = {
-    instance_type                 = "r5.large"
+    ami_type                      = "AL2_x86_64"
+    instance_type                 = "m7i.xlarge"
     subnet_ids                    = [var.private_subnets_id] # set [var.private_subnets_id[1]] to deploy in eu-central-1b
     post_bootstrap_user_data      = var.add_userdata
-    target_group_arns             = [module.alb.target_groups["http-instance"].arn, module.alb.target_groups["https-instance"].arn]
+    target_group_arns             = [module.alb.target_groups["http-instance"].arn]
     key_name                      = module.key_pair.key_pair_name
     enable_monitoring             = false
     use_mixed_instances_policy    = true
@@ -246,17 +236,26 @@ module "eks" {
   # Addons
   cluster_addons = {
     aws-ebs-csi-driver = {
-      most_recent              = true
+      addon_version            = "v1.36.0-eksbuild.1"
+      resolve_conflicts        = "OVERWRITE"
+      service_account_role_arn = module.aws_ebs_csi_driver_irsa.iam_role_arn
+    }
+    snapshot-controller = {
+      addon_version            = "v8.1.0-eksbuild.2"
+      resolve_conflicts        = "OVERWRITE"
       service_account_role_arn = module.aws_ebs_csi_driver_irsa.iam_role_arn
     }
     coredns = {
-      most_recent = true
+      addon_version     = "v1.11.3-eksbuild.2"
+      resolve_conflicts = "OVERWRITE"
     }
     kube-proxy = {
-      most_recent = true
+      addon_version     = "v1.30.6-eksbuild.2"
+      resolve_conflicts = "OVERWRITE"
     }
     vpc-cni = {
-      most_recent              = true
+      addon_version            = "v1.19.0-eksbuild.1"
+      resolve_conflicts        = "OVERWRITE"
       service_account_role_arn = module.vpc_cni_irsa.iam_role_arn
     }
   }

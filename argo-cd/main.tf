@@ -18,6 +18,9 @@ module "argocd_irsa" {
 
   create_role = local.argocd_master_is_enabled
 
+  # Argo CD will run under this role and the do self assume role to manage resources
+  allow_self_assume_role = true
+
   role_name                     = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_ArgoCDMaster"
   assume_role_condition_test    = "StringLike"
   role_permissions_boundary_arn = var.role_permissions_boundary_arn
