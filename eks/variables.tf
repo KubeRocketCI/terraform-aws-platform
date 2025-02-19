@@ -55,7 +55,7 @@ variable "public_subnets_id" {
 variable "ssl_policy" {
   description = "Predefined SSL security policy for ALB https listeners"
   type        = string
-  default     = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+  default     = "ELBSecurityPolicy-TLS13-1-3-2021-06"
 }
 
 variable "infra_public_security_group_ids" {
