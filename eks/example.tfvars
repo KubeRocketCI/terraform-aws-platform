@@ -46,6 +46,15 @@ aws_auth_users = [
     groups   = ["system:masters"]
   }
 ]
+
+aws_auth_roles = [
+  {
+    rolearn  = "arn:aws:iam::012345678910:role/KarpenterNodeRole-<cluster_name>"
+    username = "system:node:{{EC2PrivateDNSName}}"
+    groups   = ["system:bootstrappers", "system:nodes"]
+  }
+]
+
 tags = {
   "SysName"      = "KubeRocketCI"
   "Environment"  = "EKS-TEST-CLUSTER"
