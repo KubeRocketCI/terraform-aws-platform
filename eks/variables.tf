@@ -158,31 +158,3 @@ variable "cluster_identity_providers" {
   type        = any
   default     = {}
 }
-
-# ------------------------------
-#     Karpenter Variables
-# ------------------------------
-
-variable "karpenter_node_role_name" {
-  description = "The Karpenter role for node provisioner"
-  type        = string
-  default     = "KarpenterNodeRole"
-}
-
-variable "karpenter_controller_role_name" {
-  description = "The Karpenter role for controller"
-  type        = string
-  default     = "KarpenterControllerRole"
-}
-
-variable "karpenter_controller_policy_name" {
-  description = "The Karpenter Controller policy"
-  type        = string
-  default     = "KarpenterControllerPolicy"
-}
-
-variable "cluster_name" {
-  description = "The AWS EKS Cluster Name"
-  type        = string
-  default     = "eks"
-}
