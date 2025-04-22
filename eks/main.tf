@@ -284,7 +284,7 @@ module "karpenter" {
   enable_irsa                     = true
   irsa_namespace_service_accounts = ["karpenter:karpenter"]
 
-  create_pod_identity_association = true
+  create_pod_identity_association = false
   enable_pod_identity             = true
 
   node_iam_role_additional_policies = {
