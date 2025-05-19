@@ -9,6 +9,7 @@ terraform {
     acl            = "bucket-owner-full-control"
     dynamodb_table = "terraform_locks"
     encrypt        = true
+    role_arn       = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/KRCIDeployerRole"
   }
 
   required_providers {
