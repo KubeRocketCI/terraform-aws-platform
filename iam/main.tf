@@ -237,11 +237,11 @@ resource "aws_iam_role" "deployer" {
 }
 
 resource "aws_iam_role" "atlantis" {
-  name                 = var.atlantis_role_name
-  description          = "IAM role for Atlantis that can be assumed by the Atlantis service account"
-  assume_role_policy   = data.aws_iam_policy_document.atlantis_assume_role_policy.json
+  name                  = var.atlantis_role_name
+  description           = "IAM role for Atlantis that can be assumed by the Atlantis service account"
+  assume_role_policy    = data.aws_iam_policy_document.atlantis_assume_role_policy.json
   force_detach_policies = true
-  permissions_boundary = var.iam_permissions_boundary_policy_arn
+  permissions_boundary  = var.iam_permissions_boundary_policy_arn
 
   tags = merge(var.tags, tomap({ "Name" = var.atlantis_role_name }))
 }
