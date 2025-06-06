@@ -158,3 +158,37 @@ variable "cluster_identity_providers" {
   type        = any
   default     = {}
 }
+
+variable "create_cd_pipeline_operator_irsa" {
+  type    = bool
+  default = false
+}
+
+variable "create_argocd_irsa" {
+  type    = bool
+  default = false
+}
+
+variable "cd_pipeline_operator_agent_role_arn" {
+    description = "ARN of the CD Pipeline Operator Agent IAM role in account B"
+    type        = string
+    default     = ""
+}
+
+variable "cd_pipeline_operator_irsa_role_arn" {
+  description = "ARN of the CD Pipeline Operator IRSA role in account A"
+  type        = string
+  default     = ""
+}
+
+variable "argocd_agent_role_arn" {
+  description = "ARN of the ArgoCD Agent IAM role in account B"
+  type        = string
+  default     = ""
+}
+
+variable "argocd_irsa_role_arn" {
+  description = "ARN of the ArgoCD IRSA role in account A"
+  type        = string
+  default     = ""
+}
