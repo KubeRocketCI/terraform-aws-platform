@@ -211,21 +211,6 @@ resource "aws_iam_role_policy" "eks_identity_provider_full_access" {
   })
 }
 
-resource "aws_iam_role_policy" "atlantis_assume_krcid_role" {
-  role = aws_iam_role.atlantis.name
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = "sts:AssumeRole"
-        Resource = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${aws_iam_role.deployer.name}"
-      }
-    ]
-  })
-}
-
 resource "aws_iam_role" "deployer" {
   name                  = var.deployer_role_name
   description           = "IAM role to assume to deploy and manage EKS cluster and related resources"
@@ -234,14 +219,4 @@ resource "aws_iam_role" "deployer" {
   permissions_boundary  = var.iam_permissions_boundary_policy_arn
 
   tags = merge(var.tags, tomap({ "Name" = var.deployer_role_name }))
-}
-
-resource "aws_iam_role" "atlantis" {
-  name                  = var.atlantis_role_name
-  description           = "IAM role for Atlantis that can be assumed by the Atlantis service account"
-  assume_role_policy    = data.aws_iam_policy_document.atlantis_assume_role_policy.json
-  force_detach_policies = true
-  permissions_boundary  = var.iam_permissions_boundary_policy_arn
-
-  tags = merge(var.tags, tomap({ "Name" = var.atlantis_role_name }))
 }

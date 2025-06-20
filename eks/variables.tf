@@ -158,3 +158,16 @@ variable "cluster_identity_providers" {
   type        = any
   default     = {}
 }
+
+# Atlantis IAM Role variables
+variable "create_atlantis_iam_role" {
+  description = "Enable or disable the creation of IAM role for Atlantis"
+  type        = bool
+  default     = false
+}
+
+variable "atlantis_role_name" {
+  description = "The AWS IAM role name for Atlantis"
+  type        = string
+  default     = "Atlantis"
+}
