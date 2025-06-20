@@ -5,7 +5,8 @@ platform_domain_name = "<PLATFORM_DNS>"
 role_arn                      = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/KRCIDeployerRole"
 role_permissions_boundary_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:policy/eo_role_boundary"
 
-create_kaniko_iam_role = false # Create IAM role for Kaniko
+create_kaniko_iam_role   = false # Create IAM role for Kaniko
+create_atlantis_iam_role = false # Create IAM role for Atlantis
 
 vpc_id             = "<VPC_ID>" # VPC ID
 private_subnets_id = []         # EKS must have two subnets.
