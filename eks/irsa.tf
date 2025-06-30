@@ -140,6 +140,194 @@ module "kaniko_iam_policy" {
   tags = local.tags
 }
 
+############################################################
+#                   IRSA for CD Pipeline Operator          #
+############################################################
+
+# NOTE: The following resources should be created in AWS Account B (target/remote account) where the applications will be deployed.
+# ref: https://docs.kuberocketci.io/docs/operator-guide/cd/deploy-application-in-remote-cluster-via-irsa
+#
+# resource "aws_eks_access_entry" "cd_pipeline_agent_access" {
+#   count             = var.create_cd_pipeline_operator_irsa ? 1 : 0
+#   cluster_name      = module.eks.cluster_name
+#   principal_arn     = module.cd_pipeline_operator_agent_role.iam_role_arn
+#   kubernetes_groups = ["cd-pipeline-operator"]
+#   type              = "STANDARD"
+# }
+#
+# resource "aws_eks_access_policy_association" "cd_pipeline_agent_policy" {
+#   count         = var.create_cd_pipeline_operator_irsa ? 1 : 0
+#   cluster_name  = module.eks.cluster_name
+#   principal_arn = module.cd_pipeline_operator_agent_role.iam_role_arn
+#   policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+#   access_scope {
+#     type = "cluster"
+#   }
+# }
+
+module "cd_pipeline_operator_irsa_role" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "5.53.0"
+
+  create_role = var.create_cd_pipeline_operator_irsa
+
+  role_name                  = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_CDPipelineOperator"
+  assume_role_condition_test = "StringEquals"
+
+  role_policy_arns = {
+    policy = module.cd_pipeline_operator_cross_account_assume_role_policy.arn
+  }
+
+  oidc_providers = {
+    main = {
+      provider_arn               = module.eks.oidc_provider_arn
+      namespace_service_accounts = [
+        "krci:edp-cd-pipeline-operator"
+      ]
+    }
+  }
+
+  tags = local.tags
+}
+
+module "cd_pipeline_operator_cross_account_assume_role_policy" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-policy"
+  version = "5.53.0"
+
+  create_policy = var.create_cd_pipeline_operator_irsa
+
+  name        = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_CDPipelineAssume"
+  path        = "/"
+  description = "Policy allows to assume the CDPipelineAgent role in account B"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = "sts:AssumeRole"
+        Resource = var.cd_pipeline_operator_agent_role_arn
+      }
+    ]
+  })
+
+  tags = local.tags
+}
+
+# NOTE: The following resource should be created in AWS Account B (target/remote account) where the applications will be deployed.
+# ref: https://docs.kuberocketci.io/docs/operator-guide/cd/deploy-application-in-remote-cluster-via-irsa
+#
+# module "cd_pipeline_operator_agent_role" {
+#   source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
+#   version = "5.53.0"
+#
+#   create_role       = var.create_cd_pipeline_operator_irsa
+#   role_name         = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_CDPipelineAgent"
+#   role_requires_mfa = false
+#
+#   trusted_role_arns = [
+#     var.cd_pipeline_operator_irsa_role_arn
+#   ]
+#
+#   tags = local.tags
+# }
+
+###############################################################
+#                   IRSA for Argo CD                          #
+###############################################################
+
+# NOTE: The following resources should be created in AWS Account B (target/remote account) where the applications will be deployed.
+# ref: https://docs.kuberocketci.io/docs/operator-guide/cd/deploy-application-in-remote-cluster-via-irsa
+#
+# resource "aws_eks_access_entry" "argocd_agent_access" {
+#   count         = var.create_argocd_irsa ? 1 : 0
+#   cluster_name  = module.eks.cluster_name
+#   principal_arn = module.argocd_agent_role.iam_role_arn
+#   type          = "STANDARD"
+# }
+#
+# resource "aws_eks_access_policy_association" "argocd_agent_policy" {
+#   count         = var.create_argocd_irsa ? 1 : 0
+#   cluster_name  = module.eks.cluster_name
+#   principal_arn = module.argocd_agent_role.iam_role_arn
+#   policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+#   access_scope {
+#     type = "cluster"
+#   }
+# }
+
+module "argocd_irsa_role" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "5.53.0"
+
+  create_role = var.create_argocd_irsa
+
+  role_name                  = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_ArgoCDMaster"
+  assume_role_condition_test = "StringLike"
+
+  role_policy_arns = {
+    policy = module.argocd_cross_account_access_policy.arn
+  }
+
+  oidc_providers = {
+    main = {
+      provider_arn               = module.eks.oidc_provider_arn
+      namespace_service_accounts = [
+        "argocd:argocd-application-controller",
+        "argocd:argocd-applicationset-controller",
+        "argocd:argocd-server"
+      ]
+      audience                   = "sts.amazonaws.com"
+    }
+  }
+
+  tags = local.tags
+}
+
+module "argocd_cross_account_access_policy" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-policy"
+  version = "5.53.0"
+
+  create_policy = var.create_argocd_irsa
+
+  name        = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_ArgoCDMasterClusterAccess"
+  path        = "/"
+  description = "Policy allows to assume the ArgoCDAgentAccess role in account B"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Resource = [
+          var.argocd_agent_role_arn
+        ]
+      }
+    ]
+  })
+
+  tags = local.tags
+}
+
+# NOTE: The following resource should be created in AWS Account B (target/remote account) where the applications will be deployed.
+# ref: https://docs.kuberocketci.io/docs/operator-guide/cd/deploy-application-in-remote-cluster-via-irsa
+#
+# module "argocd_agent_role" {
+#   source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
+#   version = "5.53.0"
+#
+#   create_role       = var.create_argocd_irsa
+#   role_name         = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_ArgoCDAgentAccess"
+#   role_requires_mfa = false
+#
+#   trusted_role_arns = [
+#     var.argocd_irsa_role_arn
+#   ]
+#
+#   tags = local.tags
+# }
+
 ##########################################################
 #                   IRSA for Atlantis                    #
 ##########################################################
