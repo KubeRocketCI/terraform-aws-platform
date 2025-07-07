@@ -16,7 +16,8 @@ infra_public_security_group_ids = [
 
 
 # -- Parameter in AWS Parameter Store that contain data in format "account:token" in base64 format
-add_userdata = <<EOF
+add_userdata = <<-EOF
+#!/bin/bash
 export TOKEN=$(aws ssm get-parameter --name edpdockeraccount --query 'Parameter.Value' --region eu-central-1 --output text)
 cat <<DATA > /var/lib/kubelet/config.json
 {

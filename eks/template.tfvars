@@ -23,7 +23,8 @@ public_subnets_id  = []         # ALB must have two subnets.
 infra_public_security_group_ids = [] # List with security groups
 
 # -- Parameter in AWS Parameter Store that contain data in format "account:token" in base64 format
-add_userdata = <<EOF
+add_userdata = <<-EOF
+#!/bin/bash
 export TOKEN=$(aws ssm get-parameter --name <PARAMETER_NAME> --query 'Parameter.Value' --region <REGION> --output text)
 cat <<DATA > /var/lib/kubelet/config.json
 {

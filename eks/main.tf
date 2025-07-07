@@ -126,10 +126,9 @@ module "eks" {
 
   # Self Managed Node Group(s)
   self_managed_node_group_defaults = {
-    ami_type                      = "AL2_x86_64"
+    ami_type                      = "AL2023_x86_64_STANDARD"
     instance_type                 = "m7i.xlarge"
     subnet_ids                    = [var.private_subnets_id] # set [var.private_subnets_id[1]] to deploy in eu-central-1b
-    post_bootstrap_user_data      = var.add_userdata
     target_group_arns             = [module.alb.target_groups["http-instance"].arn]
     key_name                      = module.key_pair.key_pair_name
     enable_monitoring             = false
@@ -150,6 +149,11 @@ module "eks" {
       }
     }
 
+    cloudinit_pre_nodeadm = [{
+      content      = var.add_userdata
+      content_type = "text/x-shellscript; charset=\"us-ascii\""
+    }]
+
     # IAM role
     create_iam_instance_profile = true
   }
@@ -165,7 +169,21 @@ module "eks" {
       iam_role_use_name_prefix      = false
       iam_role_permissions_boundary = var.role_permissions_boundary_arn
 
-      bootstrap_extra_args = "--kubelet-extra-args '--node-labels=node.kubernetes.io/lifecycle=spot'"
+      cloudinit_pre_nodeadm = [{
+        content_type = "text/x-shellscript; charset=\"us-ascii\""
+        },
+        {
+          content      = <<-EOT
+          ---
+          apiVersion: node.eks.aws/v1alpha1
+          kind: NodeConfig
+          spec:
+            kubelet:
+              flags:
+                - --node-labels=node.kubernetes.io/lifecycle=spot
+        EOT
+          content_type = "application/node.eks.aws"
+      }]
 
       mixed_instances_policy = {
         instances_distribution = {
@@ -203,7 +221,21 @@ module "eks" {
       iam_role_use_name_prefix      = false
       iam_role_permissions_boundary = var.role_permissions_boundary_arn
 
-      bootstrap_extra_args = "--kubelet-extra-args '--node-labels=node.kubernetes.io/lifecycle=normal'"
+      cloudinit_pre_nodeadm = [{
+        content_type = "text/x-shellscript; charset=\"us-ascii\""
+        },
+        {
+          content      = <<-EOT
+          ---
+          apiVersion: node.eks.aws/v1alpha1
+          kind: NodeConfig
+          spec:
+            kubelet:
+              flags:
+                - --node-labels=node.kubernetes.io/lifecycle=normal
+        EOT
+          content_type = "application/node.eks.aws"
+      }]
 
       mixed_instances_policy = {
         override = var.demand_instance_types
