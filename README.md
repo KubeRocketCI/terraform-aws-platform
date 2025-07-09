@@ -75,7 +75,7 @@ Based on the current Terraform code defaults:
 | **Compute** | r5.xlarge (spot) | 1 | $55.00 | Default spot instance (desired: 1) |
 | **Compute** | r5.2xlarge (spot) | 0 | $0.00 | Mixed instance policy (standby) |
 | **Compute** | r5.xlarge (on-demand) | 0 | $0.00 | On-demand pool (desired: 0) |
-| **Load Balancer** | Application Load Balancer | 1 | $18.50 | Base cost + 1 LCU usage |
+| **Load Balancer** | Application Load Balancer | 1 | $25.50 | $0.027/hour + $0.008/LCU-hour |
 | **Storage** | EBS GP3 (30GB per node) | 1 | $3.60 | $0.12/GB/month |
 | **DNS** | Route 53 Hosted Zone | 1 | $0.50 | $0.50/month per zone |
 | **DNS** | Route 53 DNS Queries | 1M | $0.40 | $0.40/million queries |
@@ -88,7 +88,7 @@ Based on the current Terraform code defaults:
 | **Monitoring** | CloudWatch Logs | 5GB | $2.50 | $0.50/GB ingested |
 | **Security** | IAM Roles & Policies | ~25 | $0.00 | No additional cost |
 
-### Total Estimated Monthly Cost: **$192.03 USD**
+### Total Estimated Monthly Cost: **$199.03 USD**
 
 ### How to Calculate Your Own Costs
 
