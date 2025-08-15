@@ -39,8 +39,7 @@ EOF
 
 spot_instance_types = [] # list with instance types
 
-aws_auth_users = [] # -- AWS List users
-tags           = ""
+tags = ""
 
 # OIDC Identity provider
 cluster_identity_providers = {}

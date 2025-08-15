@@ -4,12 +4,13 @@
 
 
 module "aws_ebs_csi_driver_irsa" {
-  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version = "5.47.1"
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts"
+  version = "6.1.0"
 
-  role_name                     = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_EBS_CSI_Driver"
-  role_permissions_boundary_arn = var.role_permissions_boundary_arn
-  role_policy_arns = {
+  name                 = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_EBS_CSI_Driver"
+  permissions_boundary = var.role_permissions_boundary_arn
+  use_name_prefix      = false
+  policies = {
     AmazonEBSCSIDriverPolicy = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
   }
 
@@ -28,14 +29,20 @@ module "aws_ebs_csi_driver_irsa" {
 ##########################################################
 
 module "vpc_cni_irsa" {
-  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version = "5.47.1"
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts"
+  version = "6.1.0"
 
-  role_name                     = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_VPC_CNI"
-  role_permissions_boundary_arn = var.role_permissions_boundary_arn
+  name                 = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_VPC_CNI"
+  permissions_boundary = var.role_permissions_boundary_arn
+  use_name_prefix      = false
 
+  create_policy         = false
   attach_vpc_cni_policy = true
   vpc_cni_enable_ipv4   = true
+
+  policies = {
+    AmazonEKS_CNI_Policy = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+  }
 
   oidc_providers = {
     main = {
@@ -52,7 +59,7 @@ module "vpc_cni_irsa" {
 
 module "externalsecrets_irsa" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version = "5.47.1"
+  version = "5.60.0"
 
   role_name                     = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_ExternalSecretOperatorAccess"
   assume_role_condition_test    = "StringLike"
@@ -78,15 +85,16 @@ module "externalsecrets_irsa" {
 ##########################################################
 
 module "kaniko_iam_role" {
-  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version = "5.47.1"
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts"
+  version = "6.1.0"
 
-  create_role = var.create_kaniko_iam_role
+  create = var.create_kaniko_iam_role
 
-  role_name                  = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_KanikoAccess"
-  assume_role_condition_test = "StringLike"
+  name                 = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_KanikoAccess"
+  trust_condition_test = "StringLike"
+  use_name_prefix      = false
 
-  role_policy_arns = {
+  policies = {
     policy = module.kaniko_iam_policy.arn
   }
 
@@ -102,9 +110,9 @@ module "kaniko_iam_role" {
 
 module "kaniko_iam_policy" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-policy"
-  version = "5.47.1"
+  version = "6.1.0"
 
-  create_policy = var.create_kaniko_iam_role
+  create = var.create_kaniko_iam_role
 
   name        = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_KanikoAccess"
   path        = "/"
@@ -166,21 +174,22 @@ module "kaniko_iam_policy" {
 # }
 
 module "cd_pipeline_operator_irsa_role" {
-  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version = "5.53.0"
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts"
+  version = "6.1.0"
 
-  create_role = var.create_cd_pipeline_operator_irsa
+  create = var.create_cd_pipeline_operator_irsa
 
-  role_name                  = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_CDPipelineOperator"
-  assume_role_condition_test = "StringEquals"
+  name                 = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_CDPipelineOperator"
+  trust_condition_test = "StringEquals"
+  use_name_prefix      = false
 
-  role_policy_arns = {
+  policies = {
     policy = module.cd_pipeline_operator_cross_account_assume_role_policy.arn
   }
 
   oidc_providers = {
     main = {
-      provider_arn               = module.eks.oidc_provider_arn
+      provider_arn = module.eks.oidc_provider_arn
       namespace_service_accounts = [
         "krci:edp-cd-pipeline-operator"
       ]
@@ -192,9 +201,9 @@ module "cd_pipeline_operator_irsa_role" {
 
 module "cd_pipeline_operator_cross_account_assume_role_policy" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-policy"
-  version = "5.53.0"
+  version = "6.1.0"
 
-  create_policy = var.create_cd_pipeline_operator_irsa
+  create = var.create_cd_pipeline_operator_irsa
 
   name        = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_CDPipelineAssume"
   path        = "/"
@@ -218,10 +227,10 @@ module "cd_pipeline_operator_cross_account_assume_role_policy" {
 # ref: https://docs.kuberocketci.io/docs/operator-guide/cd/deploy-application-in-remote-cluster-via-irsa
 #
 # module "cd_pipeline_operator_agent_role" {
-#   source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
-#   version = "5.53.0"
+#   source  = "terraform-aws-modules/iam/aws//modules/iam-role"
+#   version = "6.1.0"
 #
-#   create_role       = var.create_cd_pipeline_operator_irsa
+#   create            = var.create_cd_pipeline_operator_irsa
 #   role_name         = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_CDPipelineAgent"
 #   role_requires_mfa = false
 #
@@ -257,27 +266,28 @@ module "cd_pipeline_operator_cross_account_assume_role_policy" {
 # }
 
 module "argocd_irsa_role" {
-  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version = "5.53.0"
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts"
+  version = "6.1.0"
 
-  create_role = var.create_argocd_irsa
+  create = var.create_argocd_irsa
 
-  role_name                  = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_ArgoCDMaster"
-  assume_role_condition_test = "StringLike"
+  name                 = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_ArgoCDMaster"
+  trust_condition_test = "StringLike"
+  use_name_prefix      = false
 
-  role_policy_arns = {
+  policies = {
     policy = module.argocd_cross_account_access_policy.arn
   }
 
   oidc_providers = {
     main = {
-      provider_arn               = module.eks.oidc_provider_arn
+      provider_arn = module.eks.oidc_provider_arn
       namespace_service_accounts = [
         "argocd:argocd-application-controller",
         "argocd:argocd-applicationset-controller",
         "argocd:argocd-server"
       ]
-      audience                   = "sts.amazonaws.com"
+      audience = "sts.amazonaws.com"
     }
   }
 
@@ -286,9 +296,9 @@ module "argocd_irsa_role" {
 
 module "argocd_cross_account_access_policy" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-policy"
-  version = "5.53.0"
+  version = "6.1.0"
 
-  create_policy = var.create_argocd_irsa
+  create = var.create_argocd_irsa
 
   name        = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_ArgoCDMasterClusterAccess"
   path        = "/"
@@ -314,11 +324,11 @@ module "argocd_cross_account_access_policy" {
 # ref: https://docs.kuberocketci.io/docs/operator-guide/cd/deploy-application-in-remote-cluster-via-irsa
 #
 # module "argocd_agent_role" {
-#   source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
-#   version = "5.53.0"
+#   source  = "terraform-aws-modules/iam/aws//modules/iam-role"
+#   version = "6.1.0"
 #
-#   create_role       = var.create_argocd_irsa
-#   role_name         = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_ArgoCDAgentAccess"
+#   create            = var.create_argocd_irsa
+#   name         = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_ArgoCDAgentAccess"
 #   role_requires_mfa = false
 #
 #   trusted_role_arns = [
@@ -327,55 +337,3 @@ module "argocd_cross_account_access_policy" {
 #
 #   tags = local.tags
 # }
-
-##########################################################
-#                   IRSA for Atlantis                    #
-##########################################################
-
-module "atlantis_iam_role" {
-  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version = "5.47.1"
-
-  create_role = var.create_atlantis_iam_role
-
-  role_name                     = var.atlantis_role_name
-  assume_role_condition_test    = "StringLike"
-  role_permissions_boundary_arn = var.role_permissions_boundary_arn
-
-  role_policy_arns = {
-    policy = module.atlantis_iam_policy.arn
-  }
-
-  oidc_providers = {
-    main = {
-      provider_arn               = module.eks.oidc_provider_arn
-      namespace_service_accounts = ["atlantis:atlantis"]
-    }
-  }
-
-  tags = local.tags
-}
-
-module "atlantis_iam_policy" {
-  source  = "terraform-aws-modules/iam/aws//modules/iam-policy"
-  version = "5.47.1"
-
-  create_policy = var.create_atlantis_iam_role
-
-  name        = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_AtlantisAccess"
-  path        = "/"
-  description = "IAM policy allowing Atlantis to assume KRCIDeployerRole"
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = "sts:AssumeRole"
-        Resource = var.role_arn
-      }
-    ]
-  })
-
-  tags = local.tags
-}
