@@ -1,95 +1,16 @@
-module "acm" {
-  source  = "terraform-aws-modules/acm/aws"
-  version = "5.1.1"
-
-  domain_name = var.platform_domain_name
-  zone_id     = data.aws_route53_zone.this.zone_id
-
-  validation_method = "DNS"
-
-  subject_alternative_names = [
-    "*.${var.platform_domain_name}",
-  ]
-
-  tags = merge(local.tags, tomap({ "Name" = var.platform_name }))
-}
-
-module "alb" {
-  source  = "terraform-aws-modules/alb/aws"
-  version = "9.12.0"
-
-  name = "${var.platform_name}-ingress-alb"
-
-  vpc_id                = var.vpc_id
-  subnets               = var.public_subnets_id
-  create_security_group = false
-  security_groups       = compact(concat(tolist([local.cluster_security_group_id]), var.infra_public_security_group_ids))
-  enable_http2          = false
-
-  listeners = {
-    http-https-redirect = {
-      port        = 80
-      protocol    = "HTTP"
-      action_type = "redirect"
-      redirect = {
-        port        = 443
-        protocol    = "HTTPS"
-        status_code = "HTTP_301"
-      }
-    }
-    https = {
-      port            = 443
-      protocol        = "HTTPS"
-      ssl_policy      = var.ssl_policy
-      certificate_arn = module.acm.acm_certificate_arn
-
-      forward = {
-        target_group_key = "https-instance"
-      }
-    }
+resource "aws_autoscaling_attachment" "self_managed_asg_tg" {
+  for_each = {
+    spot      = module.eks.self_managed_node_groups_autoscaling_group_names[0]
+    on_demand = module.eks.self_managed_node_groups_autoscaling_group_names[1]
   }
 
-  target_groups = {
-    http-instance = {
-      name                 = "${var.platform_name}-infra-alb-http"
-      port                 = 32080
-      protocol             = "HTTP"
-      deregistration_delay = 20
-      create_attachment    = false
-
-      health_check = {
-        matcher = 404
-      }
-    }
-  }
-  idle_timeout = 500
-  access_logs = {
-    bucket = "prod-s3-elb-logs-eu-central-1"
-  }
-
-  tags = local.tags
-}
-
-module "records" {
-  source  = "terraform-aws-modules/route53/aws//modules/records"
-  version = "4.1.0"
-
-  zone_name = var.platform_domain_name
-  records = [
-    {
-      name = "*"
-      type = "A"
-      alias = {
-        name    = module.alb.dns_name
-        zone_id = module.alb.zone_id
-      }
-    }
-  ]
+  autoscaling_group_name = each.value
+  lb_target_group_arn    = module.alb.target_groups["http-instance"].arn
 }
 
 module "key_pair" {
   source  = "terraform-aws-modules/key-pair/aws"
-  version = "2.0.3"
+  version = "2.1.0"
 
   key_name              = format("%s-%s", local.cluster_name, "key-pair")
   private_key_algorithm = "ED25519"
@@ -100,12 +21,41 @@ module "key_pair" {
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "20.30.1"
+  version = "21.1.0"
+
+  access_entries = {
+    clusteradmin = {
+      principal_arn = join("", data.aws_iam_roles.admin_role.arns)
+      type          = "STANDARD"
+
+      policy_associations = {
+        admin = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = {
+            type = "cluster"
+          }
+        }
+      }
+    }
+    atlantis_clusteradmin = {
+      principal_arn = module.atlantis_iam_role.arn
+      type          = "STANDARD"
+
+      policy_associations = {
+        admin = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = {
+            type = "cluster"
+          }
+        }
+      }
+    }
+  }
 
   enable_cluster_creator_admin_permissions = true
-  cluster_name                             = local.cluster_name
-  cluster_version                          = var.cluster_version
-  cluster_endpoint_public_access           = true
+  name                                     = local.cluster_name
+  kubernetes_version                       = var.cluster_version
+  endpoint_public_access                   = true
 
   create_iam_role               = true
   iam_role_use_name_prefix      = false
@@ -114,53 +64,38 @@ module "eks" {
   vpc_id     = var.vpc_id
   subnet_ids = var.private_subnets_id
 
-  create_cloudwatch_log_group                = false
-  cluster_enabled_log_types                  = []
-  create_node_security_group                 = false
-  create_cluster_primary_security_group_tags = false
+  create_cloudwatch_log_group        = false
+  enabled_log_types                  = []
+  create_node_security_group         = false
+  create_primary_security_group_tags = false
 
-  create_cluster_security_group = false
-  cluster_security_group_id     = local.cluster_security_group_id
+  create_security_group = false
+  security_group_id     = local.cluster_security_group_id
 
-  cluster_encryption_config = {}
-
-  # Self Managed Node Group(s)
-  self_managed_node_group_defaults = {
-    ami_type                      = "AL2023_x86_64_STANDARD"
-    instance_type                 = "m7i.xlarge"
-    subnet_ids                    = [var.private_subnets_id] # set [var.private_subnets_id[1]] to deploy in eu-central-1b
-    target_group_arns             = [module.alb.target_groups["http-instance"].arn]
-    key_name                      = module.key_pair.key_pair_name
-    enable_monitoring             = false
-    use_mixed_instances_policy    = true
-    iam_role_use_name_prefix      = false
-    iam_role_permissions_boundary = var.role_permissions_boundary_arn
-    block_device_mappings = {
-      xvda = {
-        device_name = "/dev/xvda"
-        ebs = {
-          volume_size           = 30
-          volume_type           = "gp3"
-          iops                  = 3000
-          throughput            = 150
-          encrypted             = false
-          delete_on_termination = true
-        }
-      }
-    }
-
-    cloudinit_pre_nodeadm = [{
-      content      = var.add_userdata
-      content_type = "text/x-shellscript; charset=\"us-ascii\""
-    }]
-
-    # IAM role
-    create_iam_instance_profile = true
-  }
+  encryption_config = {}
 
   self_managed_node_groups = {
     worker_group_spot = {
-      name = format("%s-%s", local.cluster_name, "spot")
+      ami_type                   = "AL2023_x86_64_STANDARD"
+      instance_type              = "m7i.xlarge"
+      name                       = format("%s-%s", local.cluster_name, "spot")
+      subnet_ids                 = [var.private_subnets_id[1]]
+      key_name                   = module.key_pair.key_pair_name
+      enable_monitoring          = false
+      use_mixed_instances_policy = true
+      block_device_mappings = {
+        xvda = {
+          device_name = "/dev/xvda"
+          ebs = {
+            volume_size           = 30
+            volume_type           = "gp3"
+            iops                  = 3000
+            throughput            = 150
+            encrypted             = false
+            delete_on_termination = true
+          }
+        }
+      }
 
       min_size     = var.spot_min_nodes_count
       max_size     = var.spot_max_nodes_count
@@ -170,6 +105,7 @@ module "eks" {
       iam_role_permissions_boundary = var.role_permissions_boundary_arn
 
       cloudinit_pre_nodeadm = [{
+        content      = var.add_userdata
         content_type = "text/x-shellscript; charset=\"us-ascii\""
         },
         {
@@ -185,34 +121,38 @@ module "eks" {
           content_type = "application/node.eks.aws"
       }]
 
+      create_iam_instance_profile = true
+
       mixed_instances_policy = {
         instances_distribution = {
           spot_instance_pools = 2
         }
-        override = var.spot_instance_types
-      }
-
-      # Schedulers
-      create_schedule = true
-      schedules = {
-        "Start" = {
-          min_size     = var.spot_min_nodes_count
-          max_size     = var.spot_max_nodes_count
-          desired_size = var.spot_desired_nodes_count
-          recurrence   = "00 6 * * MON-FRI"
-          time_zone    = "Etc/UTC"
-        },
-        "Stop" = {
-          min_size     = 0
-          max_size     = 0
-          desired_size = 0
-          recurrence   = "00 18 * * MON-FRI"
-          time_zone    = "Etc/UTC"
-        },
+        launch_template = {
+          override = var.spot_instance_types
+        }
       }
     },
     worker_group_on_demand = {
-      name = format("%s-%s", local.cluster_name, "on-demand")
+      ami_type                   = "AL2023_x86_64_STANDARD"
+      instance_type              = "m7i.xlarge"
+      name                       = format("%s-%s", local.cluster_name, "on-demand")
+      subnet_ids                 = var.private_subnets_id
+      key_name                   = module.key_pair.key_pair_name
+      enable_monitoring          = false
+      use_mixed_instances_policy = true
+      block_device_mappings = {
+        xvda = {
+          device_name = "/dev/xvda"
+          ebs = {
+            volume_size           = 30
+            volume_type           = "gp3"
+            iops                  = 3000
+            throughput            = 150
+            encrypted             = false
+            delete_on_termination = true
+          }
+        }
+      }
 
       min_size     = var.demand_min_nodes_count
       max_size     = var.demand_max_nodes_count
@@ -222,6 +162,7 @@ module "eks" {
       iam_role_permissions_boundary = var.role_permissions_boundary_arn
 
       cloudinit_pre_nodeadm = [{
+        content      = var.add_userdata
         content_type = "text/x-shellscript; charset=\"us-ascii\""
         },
         {
@@ -237,73 +178,48 @@ module "eks" {
           content_type = "application/node.eks.aws"
       }]
 
-      mixed_instances_policy = {
-        override = var.demand_instance_types
-      }
+      create_iam_instance_profile = true
 
-      # Schedulers
-      create_schedule = true
-      schedules = {
-        "Start" = {
-          min_size     = var.demand_min_nodes_count
-          max_size     = var.demand_max_nodes_count
-          desired_size = var.demand_desired_nodes_count
-          recurrence   = "00 6 * * MON-FRI"
-          time_zone    = "Etc/UTC"
-        },
-        "Stop" = {
-          min_size     = 0
-          max_size     = 0
-          desired_size = 0
-          recurrence   = "00 18 * * MON-FRI"
-          time_zone    = "Etc/UTC"
-        },
+      mixed_instances_policy = {
+        launch_template = {
+          override = var.spot_instance_types
+        }
       }
     },
   }
 
   # OIDC Identity provider
-  cluster_identity_providers = var.cluster_identity_providers
+  identity_providers = var.cluster_identity_providers
 
   # Addons
-  cluster_addons = {
+  # Verify the addon versions with: aws eks describe-addon-versions --addon-name addon-name --kubernetes-version 1.32
+  addons = {
     aws-ebs-csi-driver = {
-      addon_version            = "v1.36.0-eksbuild.1"
+      addon_version            = "v1.47.0-eksbuild.1"
       resolve_conflicts        = "OVERWRITE"
-      service_account_role_arn = module.aws_ebs_csi_driver_irsa.iam_role_arn
+      service_account_role_arn = module.aws_ebs_csi_driver_irsa.arn
     }
     snapshot-controller = {
-      addon_version            = "v8.1.0-eksbuild.2"
+      addon_version            = "v8.3.0-eksbuild.1"
       resolve_conflicts        = "OVERWRITE"
-      service_account_role_arn = module.aws_ebs_csi_driver_irsa.iam_role_arn
+      service_account_role_arn = module.aws_ebs_csi_driver_irsa.arn
     }
     coredns = {
-      addon_version     = "v1.11.3-eksbuild.2"
+      addon_version     = "v1.11.4-eksbuild.14"
       resolve_conflicts = "OVERWRITE"
     }
     kube-proxy = {
-      addon_version     = "v1.30.6-eksbuild.2"
+      addon_version     = "v1.32.6-eksbuild.2"
       resolve_conflicts = "OVERWRITE"
     }
     vpc-cni = {
-      addon_version            = "v1.19.0-eksbuild.1"
+      addon_version            = "v1.20.0-eksbuild.1"
       resolve_conflicts        = "OVERWRITE"
-      service_account_role_arn = module.vpc_cni_irsa.iam_role_arn
+      service_account_role_arn = module.vpc_cni_irsa.arn
     }
   }
 
   tags = local.tags
-}
-
-module "eks_aws_auth" {
-  source  = "terraform-aws-modules/eks/aws//modules/aws-auth"
-  version = "20.26.0"
-
-  create_aws_auth_configmap = true
-  manage_aws_auth_configmap = true
-
-  aws_auth_roles = var.aws_auth_roles
-  aws_auth_users = var.aws_auth_users
 }
 
 module "karpenter" {

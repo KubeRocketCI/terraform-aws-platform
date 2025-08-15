@@ -35,18 +35,6 @@ spot_instance_types = [
   { instance_type = "r5.2xlarge" }
 ]
 
-aws_auth_users = [
-  {
-    userarn  = "arn:aws:iam::012345678910:user/user1@example.com"
-    username = "user1@example.com"
-    groups   = ["system:masters"]
-  },
-  {
-    userarn  = "arn:aws:iam::012345678910:user/user2@example.com"
-    username = "user2@example.com"
-    groups   = ["system:masters"]
-  }
-]
 tags = {
   "SysName"      = "KubeRocketCI"
   "Environment"  = "EKS-TEST-CLUSTER"

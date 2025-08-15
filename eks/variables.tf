@@ -7,7 +7,7 @@ variable "region" {
 variable "cluster_version" {
   description = "EKS cluster version"
   type        = string
-  default     = "1.30"
+  default     = "1.32"
 }
 
 variable "platform_name" {
@@ -126,26 +126,6 @@ variable "demand_min_nodes_count" {
   default     = 0
 }
 
-variable "aws_auth_users" {
-  description = "List of user maps to add to the aws-auth configmap"
-  type = list(object({
-    userarn  = string
-    username = string
-    groups   = list(string)
-  }))
-  default = []
-}
-
-variable "aws_auth_roles" {
-  description = "List of role maps to add to the aws-auth configmap"
-  type = list(object({
-    rolearn  = string
-    username = string
-    groups   = list(string)
-  }))
-  default = []
-}
-
 variable "tags" {
   description = "A map of tags to apply to all resources"
   type        = map(any)
@@ -170,9 +150,9 @@ variable "create_argocd_irsa" {
 }
 
 variable "cd_pipeline_operator_agent_role_arn" {
-    description = "ARN of the CD Pipeline Operator Agent IAM role in account B"
-    type        = string
-    default     = ""
+  description = "ARN of the CD Pipeline Operator Agent IAM role in account B"
+  type        = string
+  default     = ""
 }
 
 variable "cd_pipeline_operator_irsa_role_arn" {
@@ -204,4 +184,16 @@ variable "atlantis_role_name" {
   description = "The AWS IAM role name for Atlantis"
   type        = string
   default     = "Atlantis"
+}
+
+variable "create_schedule" {
+  description = "Enable or disable the creation of a schedules for the Auto Scaling Groups"
+  type        = bool
+  default     = true
+}
+
+variable "admin_role_prefix" {
+  description = "Kubernetes admin, based on AWS role prefix. Default: AWSReservedSSO_AdministratorAccess"
+  type        = string
+  default     = "AWSReservedSSO_AdminUser"
 }
