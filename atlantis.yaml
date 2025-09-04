@@ -11,7 +11,7 @@ automerge: false
 projects:
   - name: s3-backend
     dir: s3-backend
-    terraform_version: "1.5.4"
+    terraform_version: "1.5.7"
     workflow: infra
     execution_order_group: 1
     workspace: default
@@ -20,7 +20,7 @@ projects:
       when_modified: ["*.tf", "terraform.tfvars"]
   - name: iam
     dir: iam
-    terraform_version: "1.5.4"
+    terraform_version: "1.5.7"
     workflow: infra
     execution_order_group: 2
     workspace: default
@@ -30,7 +30,7 @@ projects:
       when_modified: ["*.tf", "terraform.tfvars"]
   - name: vpc
     dir: vpc
-    terraform_version: "1.5.4"
+    terraform_version: "1.5.7"
     workflow: infra
     execution_order_group: 3
     workspace: default
@@ -40,7 +40,7 @@ projects:
       when_modified: ["*.tf", "terraform.tfvars"]
   - name: eks
     dir: eks
-    terraform_version: "1.5.4"
+    terraform_version: "1.5.7"
     workflow: infra
     execution_order_group: 4
     workspace: default

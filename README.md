@@ -36,7 +36,7 @@ You can use the provided Terraform scripts to create and manage your AWS resourc
 
 ## Terraform Version
 
-The current Terraform version used in this project is 1.5.4. Please ensure you have this version installed to avoid any compatibility issues.
+The current Terraform version used in this project is 1.5.7. Please ensure you have this version installed to avoid any compatibility issues.
 
 ## License
 
