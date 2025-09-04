@@ -1,6 +1,6 @@
 terraform {
 
-  required_version = "= 1.5.4"
+  required_version = "= 1.5.7"
 
   backend "s3" {
     bucket         = "terraform-states-<ACCOUNT_ID>"
