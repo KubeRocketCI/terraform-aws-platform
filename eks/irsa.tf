@@ -337,3 +337,26 @@ module "argocd_cross_account_access_policy" {
 #
 #   tags = local.tags
 # }
+
+###############################################################
+#                  IRSA for Karpenter                         #
+###############################################################
+
+module "karpenter" {
+  source  = "terraform-aws-modules/eks/aws//modules/karpenter"
+  version = "21.3.1"
+
+  cluster_name                    = var.platform_name
+  iam_role_name                   = "KarpenterControllerRole-${var.platform_name}"
+  iam_role_use_name_prefix        = false
+  node_iam_role_name              = "KarpenterNodeRole-${var.platform_name}"
+  node_iam_role_use_name_prefix   = false
+
+  create_pod_identity_association = false
+
+  node_iam_role_additional_policies = {
+    AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  }
+
+  tags = local.tags
+}

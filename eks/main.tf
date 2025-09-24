@@ -222,22 +222,3 @@ module "eks" {
   tags = local.tags
 }
 
-module "karpenter" {
-  source  = "terraform-aws-modules/eks/aws//modules/karpenter"
-  version = "20.35.0"
-
-  cluster_name                    = module.eks.cluster_name
-  irsa_oidc_provider_arn          = module.eks.oidc_provider_arn
-  enable_spot_termination         = false
-  enable_irsa                     = true
-  irsa_namespace_service_accounts = ["karpenter:karpenter"]
-
-  create_pod_identity_association = false
-  enable_pod_identity             = true
-
-  node_iam_role_additional_policies = {
-    AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-  }
-
-  tags = local.tags
-}
