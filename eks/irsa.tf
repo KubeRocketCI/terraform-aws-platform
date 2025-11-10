@@ -346,17 +346,100 @@ module "karpenter" {
   source  = "terraform-aws-modules/eks/aws//modules/karpenter"
   version = "21.3.1"
 
-  cluster_name                    = var.platform_name
-  iam_role_name                   = "KarpenterControllerRole-${var.platform_name}"
-  iam_role_use_name_prefix        = false
-  node_iam_role_name              = "KarpenterNodeRole-${var.platform_name}"
-  node_iam_role_use_name_prefix   = false
+  cluster_name                  = var.platform_name
+  iam_role_name                 = "KarpenterControllerRole-${var.platform_name}"
+  iam_role_use_name_prefix      = false
+  node_iam_role_name            = "KarpenterNodeRole-${var.platform_name}"
+  node_iam_role_use_name_prefix = false
 
   create_pod_identity_association = false
 
   node_iam_role_additional_policies = {
     AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
   }
+
+  tags = local.tags
+}
+
+##########################################################
+#                    IRSA for Velero                    #
+##########################################################
+module "velero_iam_role" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts"
+  version = "6.1.0"
+
+  create = var.create_velero_iam_role
+
+  name                 = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_Velero"
+  trust_condition_test = "StringEquals"
+  permissions_boundary = var.role_permissions_boundary_arn
+  use_name_prefix      = false
+
+  policies = {
+    policy = module.velero_iam_policy.arn
+  }
+
+  oidc_providers = {
+    main = {
+      provider_arn = module.eks.oidc_provider_arn
+      namespace_service_accounts = [
+        "velero:velero"
+      ]
+    }
+  }
+
+  tags = local.tags
+}
+
+module "velero_iam_policy" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-policy"
+  version = "6.1.0"
+
+  create = var.create_velero_iam_role
+
+  name        = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_Velero"
+  path        = "/"
+  description = "IAM policy for Velero"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "ec2:DescribeVolumes",
+          "ec2:DescribeSnapshots",
+          "ec2:CreateTags",
+          "ec2:CreateVolume",
+          "ec2:CreateSnapshot",
+          "ec2:DeleteSnapshot"
+        ],
+        Resource = "*"
+      },
+      {
+        Effect = "Allow",
+        Action = [
+          "s3:GetObject",
+          "s3:DeleteObject",
+          "s3:PutObject",
+          "s3:AbortMultipartUpload",
+          "s3:ListMultipartUploadParts"
+        ],
+        Resource = [
+          "arn:aws:s3:::velero-krci-dev/*"
+        ]
+      },
+      {
+        Effect = "Allow",
+        Action = [
+          "s3:ListBucket"
+        ],
+        Resource = [
+          "arn:aws:s3:::velero-krci-dev"
+        ]
+      }
+    ]
+  })
 
   tags = local.tags
 }

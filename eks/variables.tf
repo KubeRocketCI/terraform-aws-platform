@@ -197,3 +197,9 @@ variable "admin_role_prefix" {
   type        = string
   default     = "AWSReservedSSO_AdminUser"
 }
+
+variable "create_velero_iam_role" {
+  description = "Enable or disable the creation of IAM role and policy for Velero"
+  type        = bool
+  default     = false
+}

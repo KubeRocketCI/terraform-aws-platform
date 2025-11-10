@@ -7,6 +7,7 @@ role_permissions_boundary_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:policy/eo_role_bo
 
 create_kaniko_iam_role   = false # Create IAM role for Kaniko
 create_atlantis_iam_role = false # Create IAM role for Atlantis
+create_velero_iam_role   = false # Create IAM role for Velero
 
 create_cd_pipeline_operator_irsa = false # Create IRSA for CD Pipeline Operator
 create_argocd_irsa               = false # Create IRSA for Argo CD
