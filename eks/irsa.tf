@@ -346,17 +346,37 @@ module "karpenter" {
   source  = "terraform-aws-modules/eks/aws//modules/karpenter"
   version = "21.3.1"
 
-  cluster_name                    = var.platform_name
-  iam_role_name                   = "KarpenterControllerRole-${var.platform_name}"
-  iam_role_use_name_prefix        = false
-  node_iam_role_name              = "KarpenterNodeRole-${var.platform_name}"
-  node_iam_role_use_name_prefix   = false
+  cluster_name                  = var.platform_name
+  iam_role_name                 = "KarpenterControllerRole-${var.platform_name}"
+  iam_role_use_name_prefix      = false
+  node_iam_role_name            = "KarpenterNodeRole-${var.platform_name}"
+  node_iam_role_use_name_prefix = false
 
   create_pod_identity_association = false
 
   node_iam_role_additional_policies = {
     AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
   }
+
+  tags = local.tags
+}
+
+##########################################################
+#                    IRSA for Velero                    #
+##########################################################
+module "velero" {
+  source  = "terraform-module/velero/kubernetes"
+  version = "1.3.0"
+
+  app_deploy    = false
+  iam_deploy    = true
+  iam_role_name = "AWSIRSA_${replace(title(local.cluster_name), "-", "")}_Velero"
+
+  bucket                      = "velero-${var.platform_name}"
+  cluster_name                = var.platform_name
+  openid_connect_provider_uri = module.eks.oidc_provider
+
+  values = []
 
   tags = local.tags
 }
