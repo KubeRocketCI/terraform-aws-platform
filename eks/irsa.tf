@@ -344,15 +344,18 @@ module "argocd_cross_account_access_policy" {
 
 module "karpenter" {
   source  = "terraform-aws-modules/eks/aws//modules/karpenter"
-  version = "21.3.1"
+  version = "21.12.0"
 
-  cluster_name                  = var.platform_name
-  iam_role_name                 = "KarpenterControllerRole-${var.platform_name}"
-  iam_role_use_name_prefix      = false
-  node_iam_role_name            = "KarpenterNodeRole-${var.platform_name}"
-  node_iam_role_use_name_prefix = false
+  cluster_name             = var.platform_name
+  iam_role_name            = "KarpenterControllerRole-${var.platform_name}"
+  iam_role_use_name_prefix = false
+  enable_spot_termination  = false
 
-  create_pod_identity_association = false
+  namespace = "karpenter"
+
+  node_iam_role_use_name_prefix   = false
+  node_iam_role_name              = "KarpenterNodeRole-${var.platform_name}"
+  create_pod_identity_association = true
 
   node_iam_role_additional_policies = {
     AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
@@ -360,6 +363,7 @@ module "karpenter" {
 
   tags = local.tags
 }
+
 
 ##########################################################
 #                    IRSA for Velero                    #

@@ -21,7 +21,7 @@ module "key_pair" {
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "21.1.0"
+  version = "21.1.5"
 
   access_entries = {
     clusteradmin = {
@@ -195,7 +195,7 @@ module "eks" {
   # Verify the addon versions with: aws eks describe-addon-versions --addon-name addon-name --kubernetes-version 1.32
   addons = {
     aws-ebs-csi-driver = {
-      addon_version            = "v1.47.0-eksbuild.1"
+      addon_version            = "v1.50.3-eksbuild.1"
       resolve_conflicts        = "OVERWRITE"
       service_account_role_arn = module.aws_ebs_csi_driver_irsa.arn
     }
@@ -205,17 +205,23 @@ module "eks" {
       service_account_role_arn = module.aws_ebs_csi_driver_irsa.arn
     }
     coredns = {
-      addon_version     = "v1.11.4-eksbuild.14"
+      addon_version     = "v1.12.4-eksbuild.1"
       resolve_conflicts = "OVERWRITE"
     }
     kube-proxy = {
-      addon_version     = "v1.32.6-eksbuild.2"
+      addon_version     = "v1.34.1-eksbuild.2"
       resolve_conflicts = "OVERWRITE"
     }
     vpc-cni = {
-      addon_version            = "v1.20.0-eksbuild.1"
+      addon_version            = "v1.20.4-eksbuild.1"
       resolve_conflicts        = "OVERWRITE"
       service_account_role_arn = module.vpc_cni_irsa.arn
+    },
+    eks-pod-identity-agent  = {
+      addon_version               = "v1.3.10-eksbuild.2"
+      resolve_conflicts_on_update = "OVERWRITE"
+      resolve_conflicts_on_create = "OVERWRITE"
+      resolve_conflicts           = "OVERWRITE"
     }
   }
 
