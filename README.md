@@ -150,6 +150,34 @@ Before deploying, ensure you:
 
 **⚠️ IMPORTANT**: This cost analysis is provided as a reference methodology only. AWS pricing changes frequently, and actual costs depend on numerous factors including usage patterns, regional variations, and current market conditions. Always consult official AWS pricing sources and use the AWS Pricing Calculator for accurate, up-to-date cost estimates before making deployment decisions.
 
-## Contributing
+### Git Commit Messages
+
+Commit messages **must** follow the platform format for Jira traceability and changelog generation:
+
+**Format:** `EPMDEDP-<ID>: <type>: <description>`
+
+**Example:** `EPMDEDP-16058: feat: add feature`
+
+**Allowed types:**
+
+| Type     | Purpose                    |
+|----------|----------------------------|
+| feat     | New feature                |
+| fix      | Bug fix                    |
+| docs     | Documentation changes      |
+| style    | Code style/formatting      |
+| refactor | Code refactoring           |
+| test     | Adding/updating tests      |
+| chore    | Maintenance tasks          |
+
+Use the `!` suffix after the type for breaking changes (e.g. `feat!: change API`).
+
+**Additional guidelines:**
+
+* Use the present tense ("Add feature" not "Added feature")
+* Use the imperative mood ("Move cursor to..." not "Moves cursor to...")
+* Limit the first line to 72 characters or less
+
+### Contributing
 
 Contributions are welcome! Feel free to submit a pull request with any changes or improvements to the scripts. Please ensure your code adheres to the existing style for consistency.
