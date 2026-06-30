@@ -30,22 +30,61 @@ module "alb" {
       forward = {
         target_group_key = "http-instance"
       }
+
+      # nginx-ingress -> Envoy Gateway migration: route the configured host header(s)
+      # to the Envoy Gateway target group (envoy-instance); every other host keeps
+      # hitting the default forward action (http-instance -> nginx-ingress). Enabled
+      # per the envoy_gateway_route_enabled flag (default off).
+      rules = var.envoy_gateway_route_enabled ? {
+        envoy = {
+          priority = 10
+          actions = [{
+            type             = "forward"
+            target_group_key = "envoy-instance"
+          }]
+          conditions = [{
+            host_header = {
+              values = var.envoy_gateway_route_hosts
+            }
+          }]
+        }
+      } : {}
     }
   }
 
-  target_groups = {
-    http-instance = {
-      name                 = "${var.platform_name}-infra-alb-http"
-      port                 = 32080
-      protocol             = "HTTP"
-      deregistration_delay = 20
-      create_attachment    = false
+  target_groups = merge(
+    {
+      http-instance = {
+        name                 = "${var.platform_name}-infra-alb-http"
+        port                 = 32080
+        protocol             = "HTTP"
+        deregistration_delay = 20
+        create_attachment    = false
 
-      health_check = {
-        matcher = 404
+        health_check = {
+          matcher = 404
+        }
       }
-    }
-  }
+    },
+    # nginx-ingress -> Envoy Gateway migration: extra target group pointing at the
+    # Envoy Gateway data plane NodePort. Added only when the route is enabled, so the
+    # default setup is unchanged. No new load balancer is created.
+    var.envoy_gateway_route_enabled ? {
+      envoy-instance = {
+        # Envoy Gateway data plane NodePort (envoy-gateway-resources EnvoyProxy
+        # "http-proxy"). ALB terminates TLS on :443 and forwards plain HTTP here.
+        name                 = "${var.platform_name}-infra-alb-envoy"
+        port                 = 32180
+        protocol             = "HTTP"
+        deregistration_delay = 20
+        create_attachment    = false
+
+        health_check = {
+          matcher = "200,404"
+        }
+      }
+    } : {}
+  )
   idle_timeout = 500
   access_logs = {
     bucket = "prod-s3-elb-logs-eu-central-1"

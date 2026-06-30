@@ -197,3 +197,16 @@ variable "admin_role_prefix" {
   type        = string
   default     = "AWSReservedSSO_AdminUser"
 }
+
+# nginx-ingress -> Envoy Gateway migration
+variable "envoy_gateway_route_enabled" {
+  description = "Route selected host header(s) through the Envoy Gateway data plane by adding an extra target group + HTTPS listener rule on the existing ingress ALB. Disabled by default; enable during the nginx-ingress -> Envoy Gateway migration. No new load balancer is created."
+  type        = bool
+  default     = false
+}
+
+variable "envoy_gateway_route_hosts" {
+  description = "Host header value(s) routed to Envoy Gateway when envoy_gateway_route_enabled is true. ALB wildcard globs are allowed (e.g. \"<COMPONENT>-<NAMESPACE>.<PLATFORM_NAME>.<PLATFORM_DNS>\")."
+  type        = list(string)
+  default     = []
+}

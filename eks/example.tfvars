@@ -50,3 +50,9 @@ cluster_identity_providers = {
     groups_claim = "groups"
   }
 }
+
+# -- nginx-ingress -> Envoy Gateway migration ---------------------------------
+# Route selected host(s) through Envoy Gateway via an extra target group + HTTPS
+# listener rule on the existing ingress ALB (no new load balancer). Default off.
+# envoy_gateway_route_enabled = true
+# envoy_gateway_route_hosts   = ["<COMPONENT>-<NAMESPACE>.<PLATFORM_NAME>.<PLATFORM_DNS>"]
