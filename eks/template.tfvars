@@ -43,3 +43,10 @@ tags = ""
 
 # OIDC Identity provider
 cluster_identity_providers = {}
+
+# -- nginx-ingress -> Envoy Gateway migration (optional, default off) ----------
+# Two related switches for a zero-downtime cutover; see eks/variables.tf.
+# Step 1 - provision the Envoy Gateway data-plane target group (no traffic yet):
+# envoy_gateway_enabled = true
+# Step 2 - once that target group is healthy, flip the ALB default action to Envoy:
+# platform_default_gateway = "envoy"

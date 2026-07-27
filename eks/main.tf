@@ -8,6 +8,20 @@ resource "aws_autoscaling_attachment" "self_managed_asg_tg" {
   lb_target_group_arn    = module.alb.target_groups["http-instance"].arn
 }
 
+# nginx-ingress -> Envoy Gateway migration: register the node ASGs on the Envoy target
+# group so its NodePort becomes a healthy target. Created only when envoy_gateway_enabled
+# is true (the envoy-instance target group exists then); otherwise for_each is empty and
+# nothing is created. Pairs with platform_default_gateway — see eks/variables.tf.
+resource "aws_autoscaling_attachment" "self_managed_asg_tg_envoy" {
+  for_each = var.envoy_gateway_enabled ? {
+    spot      = module.eks.self_managed_node_groups_autoscaling_group_names[0]
+    on_demand = module.eks.self_managed_node_groups_autoscaling_group_names[1]
+  } : {}
+
+  autoscaling_group_name = each.value
+  lb_target_group_arn    = module.alb.target_groups["envoy-instance"].arn
+}
+
 module "key_pair" {
   source  = "terraform-aws-modules/key-pair/aws"
   version = "2.1.0"
@@ -217,7 +231,7 @@ module "eks" {
       resolve_conflicts        = "OVERWRITE"
       service_account_role_arn = module.vpc_cni_irsa.arn
     },
-    eks-pod-identity-agent  = {
+    eks-pod-identity-agent = {
       addon_version               = "v1.3.10-eksbuild.2"
       resolve_conflicts_on_update = "OVERWRITE"
       resolve_conflicts_on_create = "OVERWRITE"
