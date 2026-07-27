@@ -27,25 +27,50 @@ module "alb" {
       ssl_policy      = var.ssl_policy
       certificate_arn = module.acm.acm_certificate_arn
 
+      # nginx-ingress -> Envoy Gateway migration: the default :443 action forwards to the
+      # Envoy data-plane target group only when it exists (envoy_gateway_enabled) AND the
+      # default is flipped (platform_default_gateway = "envoy"); otherwise it keeps hitting
+      # nginx-ingress. See eks/variables.tf for the two-step relationship.
       forward = {
-        target_group_key = "http-instance"
+        target_group_key = (var.envoy_gateway_enabled && var.platform_default_gateway == "envoy") ? "envoy-instance" : "http-instance"
       }
     }
   }
 
-  target_groups = {
-    http-instance = {
-      name                 = "${var.platform_name}-infra-alb-http"
-      port                 = 32080
-      protocol             = "HTTP"
-      deregistration_delay = 20
-      create_attachment    = false
+  target_groups = merge(
+    {
+      http-instance = {
+        name                 = "${var.platform_name}-infra-alb-http"
+        port                 = 32080
+        protocol             = "HTTP"
+        deregistration_delay = 20
+        create_attachment    = false
 
-      health_check = {
-        matcher = 404
+        health_check = {
+          matcher = 404
+        }
       }
-    }
-  }
+    },
+    # nginx-ingress -> Envoy Gateway migration: extra target group pointing at the Envoy
+    # Gateway data-plane NodePort. Created only when envoy_gateway_enabled = true; the ALB
+    # default action forwards here once platform_default_gateway = "envoy". No new load
+    # balancer is created.
+    var.envoy_gateway_enabled ? {
+      envoy-instance = {
+        # Envoy Gateway data plane NodePort (envoy-gateway-resources EnvoyProxy). The ALB
+        # terminates TLS on :443 and forwards plain HTTP here.
+        name                 = "${var.platform_name}-infra-alb-envoy"
+        port                 = 32180
+        protocol             = "HTTP"
+        deregistration_delay = 20
+        create_attachment    = false
+
+        health_check = {
+          matcher = "200,404"
+        }
+      }
+    } : {}
+  )
   idle_timeout = 500
   access_logs = {
     bucket = "prod-s3-elb-logs-eu-central-1"

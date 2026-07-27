@@ -197,3 +197,32 @@ variable "admin_role_prefix" {
   type        = string
   default     = "AWSReservedSSO_AdminUser"
 }
+
+# nginx-ingress -> Envoy Gateway migration -------------------------------------
+# The two variables below are a related pair and are kept together on purpose.
+# Apply them in two steps for a zero-downtime cutover:
+#   1. envoy_gateway_enabled = true       provisions the Envoy Gateway data-plane
+#      target group on the existing ingress ALB and registers the node ASGs on it.
+#      Nothing is routed to it yet, so it is safe to apply alone; wait for the target
+#      group to become healthy.
+#   2. platform_default_gateway = "envoy" flips the ALB default :443 action onto that
+#      target group. It only takes effect once envoy_gateway_enabled is true. The
+#      in-cluster nginx-fallback catch-all HTTPRoute then sends any host that still
+#      lacks its own HTTPRoute back to nginx-ingress.
+# To roll back, reverse the order: set platform_default_gateway = "nginx" first.
+variable "envoy_gateway_enabled" {
+  description = "Provision the Envoy Gateway data-plane target group (NodePort 32180) on the existing ingress ALB and register the node ASGs on it. No new load balancer is created and no traffic reaches it until platform_default_gateway = \"envoy\". Prerequisite for platform_default_gateway: enable this first and wait for the target group to become healthy before flipping the default action."
+  type        = bool
+  default     = false
+}
+
+variable "platform_default_gateway" {
+  description = "Which data plane the ingress ALB default :443 action forwards to. \"nginx\" (default) keeps today's behaviour; \"envoy\" flips the default onto the Envoy Gateway data-plane target group so every host hits Envoy first, and any host that only has an Ingress (no HTTPRoute) falls through to nginx-ingress via the in-cluster nginx-fallback catch-all HTTPRoute (ingress-nginx add-on). Only takes effect when envoy_gateway_enabled = true, whose target group it forwards to; set that first and confirm the target group is healthy before setting \"envoy\"."
+  type        = string
+  default     = "nginx"
+
+  validation {
+    condition     = contains(["nginx", "envoy"], var.platform_default_gateway)
+    error_message = "platform_default_gateway must be either \"nginx\" or \"envoy\"."
+  }
+}
