@@ -11,7 +11,7 @@ module "aws_ebs_csi_driver_irsa" {
   permissions_boundary = var.role_permissions_boundary_arn
   use_name_prefix      = false
   policies = {
-    AmazonEBSCSIDriverPolicy = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+    AmazonEBSCSIDriverPolicy = "arn:aws:iam::aws:policy/AmazonEBSCSIDriverPolicyV2"
   }
 
   oidc_providers = {
