@@ -344,7 +344,7 @@ module "argocd_cross_account_access_policy" {
 
 module "karpenter" {
   source  = "terraform-aws-modules/eks/aws//modules/karpenter"
-  version = "21.12.0"
+  version = "21.20.0"
 
   cluster_name             = var.platform_name
   iam_role_name            = "KarpenterControllerRole-${var.platform_name}"
