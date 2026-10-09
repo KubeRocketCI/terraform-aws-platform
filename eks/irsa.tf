@@ -70,14 +70,33 @@ module "externalsecrets_irsa" {
   external_secrets_ssm_parameter_arns = [
     "arn:aws:ssm:${var.region}:${data.aws_caller_identity.current.account_id}:parameter/edp/*"
   ]
+  external_secrets_secrets_manager_arns = var.external_secrets_secrets_manager_arns
+  external_secrets_kms_key_arns         = var.external_secrets_kms_key_arns
 
   oidc_providers = {
     main = {
       provider_arn               = module.eks.oidc_provider_arn
-      namespace_service_accounts = ["*"]
+      namespace_service_accounts = var.external_secrets_service_accounts
     }
   }
   tags = local.tags
+}
+
+check "external_secrets_role_scope" {
+  assert {
+    condition     = alltrue([for sa in var.external_secrets_service_accounts : !can(regex("^[*]$|:[*?]+$", sa))])
+    error_message = "external_secrets_service_accounts admits every ServiceAccount of the cluster or of a namespace to the External Secrets Operator role. List the ServiceAccounts the SecretStores use."
+  }
+
+  assert {
+    condition     = alltrue([for arn in var.external_secrets_secrets_manager_arns : !endswith(arn, ":secret:*")])
+    error_message = "external_secrets_secrets_manager_arns lets the External Secrets Operator role read every Secrets Manager secret of an account. Name the secrets the platform stores."
+  }
+
+  assert {
+    condition     = alltrue([for arn in var.external_secrets_kms_key_arns : !endswith(arn, ":key/*")])
+    error_message = "external_secrets_kms_key_arns lets the External Secrets Operator role decrypt with every KMS key of an account. List the keys the platform uses, or set []."
+  }
 }
 
 ##########################################################
@@ -101,11 +120,23 @@ module "kaniko_iam_role" {
   oidc_providers = {
     main = {
       provider_arn               = module.eks.oidc_provider_arn
-      namespace_service_accounts = ["*"]
+      namespace_service_accounts = var.kaniko_service_accounts
     }
   }
 
   tags = local.tags
+}
+
+check "kaniko_role_scope" {
+  assert {
+    condition     = !var.create_kaniko_iam_role || alltrue([for sa in var.kaniko_service_accounts : !can(regex("^[*]$|:[*?]+$", sa))])
+    error_message = "kaniko_service_accounts admits every ServiceAccount of the cluster or of a namespace to the Kaniko role. List the ServiceAccounts the build pipelines run as."
+  }
+
+  assert {
+    condition     = !var.create_kaniko_iam_role || alltrue([for action in var.kaniko_repository_actions : !can(regex(":[*]+$", action))])
+    error_message = "kaniko_repository_actions holds a wildcard for every action, so the Kaniko role may also delete repositories and images. List the push and pull actions."
+  }
 }
 
 module "kaniko_iam_policy" {
@@ -122,10 +153,7 @@ module "kaniko_iam_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        Action = [
-          "ecr:*",
-          "cloudtrail:LookupEvents"
-        ]
+        Action   = var.kaniko_repository_actions
         Effect   = "Allow"
         Resource = "arn:aws:ecr:${var.region}:${data.aws_caller_identity.current.account_id}:repository/*"
       },
