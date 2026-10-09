@@ -50,3 +50,13 @@ cluster_identity_providers = {}
 # envoy_gateway_enabled = true
 # Step 2 - once that target group is healthy, flip the ALB default action to Envoy:
 # platform_default_gateway = "envoy"
+
+# -- Scope of the IAM roles for ServiceAccounts (optional) ---------------------
+# By default every ServiceAccount of the cluster can assume the External Secrets Operator and Kaniko roles; see eks/variables.tf.
+# Every SecretStore that authenticates through the External Secrets Operator role needs its ServiceAccount listed or matched:
+# the platform chart uses externalsecrets-aws, the add-ons that sync secrets bring their own.
+# external_secrets_service_accounts     = ["<PLATFORM_NAMESPACE>:externalsecrets-aws"]
+# external_secrets_secrets_manager_arns = ["arn:aws:secretsmanager:<REGION>:<AWS_ACCOUNT_ID>:secret:/edp/*"]
+# external_secrets_kms_key_arns         = [] # customer managed KMS keys that encrypt the parameters and secrets
+# kaniko_service_accounts               = ["<PLATFORM_NAMESPACE>:tekton"]
+# kaniko_repository_actions             = ["ecr:BatchCheckLayerAvailability", "ecr:BatchGetImage", "ecr:CompleteLayerUpload", "ecr:GetDownloadUrlForLayer", "ecr:InitiateLayerUpload", "ecr:PutImage", "ecr:UploadLayerPart"]

@@ -8,6 +8,12 @@ argocd_master_role_name_list = [
   "arn:aws:iam::012345678910:role/EDPArgoCDClusterAdmin", # AWS IAM Role from the remote EKS cluster
 ]
 oidc_provider_arn = "arn:aws:iam::012345678910:oidc-provider/oidc.eks.eu-central-1.amazonaws.com/id/9876543210"
+# ServiceAccounts of the Argo CD pods that assume the role. Without this value every ServiceAccount of the argocd namespace can assume it.
+argocd_master_service_accounts = [
+  "argocd:argocd-application-controller",
+  "argocd:argocd-applicationset-controller",
+  "argocd:argocd-server",
+]
 
 #---------------------------------------------#
 # ArgoCD Agent Deployment
