@@ -166,7 +166,7 @@ There are the minimum AWS IAM permissions required for an IAM user or IAM role t
 ### How to use AWS IAM role
 
 1. Create AWS IAM role with the permissions listed above in the AWS account where EKS cluster is going to be deployed, e.g. `arn:aws:iam::012345678910:role/KRCIDeployerRole`.
-Put the main AWS account to the trusted entities to allow this role to be assumed, such as:
+Put the identities that run Terraform to the trusted entities to allow this role to be assumed, such as the role of the administrators and the Atlantis role:
 
 ```json
 {
@@ -175,16 +175,22 @@ Put the main AWS account to the trusted entities to allow this role to be assume
     {
       "Effect": "Allow",
       "Action": "sts:AssumeRole",
-      "Principal": {"Service": "ec2.amazonaws.com"}
-    },
-    {
-      "Effect": "Allow",
-      "Action": "sts:AssumeRole",
-      "Principal": {"AWS": "arn:aws:iam::012345678910:root"}
+      "Principal": {
+        "AWS": [
+          "arn:aws:iam::012345678910:role/Administrator",
+          "arn:aws:iam::012345678910:role/Atlantis"
+        ]
+      }
     }
   ]
 }
 ```
+
+A trust policy that names the whole account (`arn:aws:iam::012345678910:root`) admits every identity of the account whose own IAM policy allows `sts:AssumeRole` on the role.
+
+The `iam` project creates the role. By default it trusts the whole account and the EC2 service; `deployer_role_trust_account = false`, `deployer_role_trust_ec2 = false` and the two roles in `deployer_role_trusted_principal_arns` give the trust policy above. Keep `deployer_role_trust_ec2 = true` when Terraform runs on an EC2 instance that carries the role.
+
+The listed roles must exist. The Atlantis role is created by the `eks` project, so add it and apply the `iam` project again once the cluster is up. Apply it again as well after a listed role has been deleted and created anew: IAM keeps the ID of the deleted role in the trust policy.
 
 2. Create AWS IAM policy in the main AWS account to allow to assume the created IAM role.
 
@@ -285,7 +291,7 @@ Put the main AWS account to the trusted entities to allow this role to be assume
 
 4. Attach the created IAM policy to the Principal who is going to deploy the cluster. It can be AWS IAM user group, IAM user or IAM role.
 
-Moreover, it's supposed that the Jenkins instance will assume the provided IAM role to deploy the EKS cluster in a customer account.
+Atlantis assumes the role through the IAM role that the `eks` project creates when `create_atlantis_iam_role` is `true`.
 
 5. Put the IAM role arn to the input variables in the `terraform.tfvars` file to assume it for EKS cluster deployment.
 

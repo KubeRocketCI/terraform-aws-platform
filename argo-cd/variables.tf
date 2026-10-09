@@ -19,6 +19,18 @@ variable "oidc_provider_arn" {
   default     = ""
 }
 
+variable "argocd_master_service_accounts" {
+  description = "ServiceAccounts that may assume the Argo CD Master role, as \"<namespace>:<name>\" with * and ? as wildcards: the ones of the Argo CD server and controllers, e.g. [\"argocd:argocd-server\"]. The default admits every ServiceAccount of the argocd namespace; terraform plan warns while it is in use."
+  type        = list(string)
+  default     = ["argocd:*"]
+  nullable    = false
+
+  validation {
+    condition     = length(var.argocd_master_service_accounts) > 0 && alltrue([for sa in var.argocd_master_service_accounts : sa == "*" || can(regex("^[a-z0-9*?-]+:[a-z0-9*?.-]+$", sa))])
+    error_message = "argocd_master_service_accounts must be [\"*\"] or a non-empty list of \"<namespace>:<name>\" items without the \"system:serviceaccount:\" prefix: lowercase letters, digits and '-', in the name also '.', with * and ? as wildcards."
+  }
+}
+
 #---------------------------------------------#
 # ArgoCD Agent Deployment
 #---------------------------------------------#

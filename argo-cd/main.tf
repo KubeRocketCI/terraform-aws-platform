@@ -31,11 +31,18 @@ module "argocd_irsa" {
   oidc_providers = {
     main = {
       provider_arn               = var.oidc_provider_arn
-      namespace_service_accounts = ["argocd:*"]
+      namespace_service_accounts = var.argocd_master_service_accounts
     }
   }
 
   tags = local.tags
+}
+
+check "argocd_master_role_scope" {
+  assert {
+    condition     = !local.argocd_master_is_enabled || alltrue([for sa in var.argocd_master_service_accounts : !can(regex("^[*]$|:[*?]+$", sa))])
+    error_message = "argocd_master_service_accounts admits every ServiceAccount of the cluster or of a namespace to the Argo CD Master role. List the ServiceAccounts of the Argo CD server and controllers."
+  }
 }
 
 #---------------------------------------------#
