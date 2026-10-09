@@ -5,6 +5,21 @@ platform_domain_name = "example.com"
 role_arn                      = "arn:aws:iam::012345678910:role/KRCIDeployerRole"
 role_permissions_boundary_arn = "arn:aws:iam::012345678910:policy/eo_role_boundary"
 
+# -- Scope of the IAM roles for ServiceAccounts; see eks/variables.tf.
+external_secrets_service_accounts     = ["krci:externalsecrets-aws"]
+external_secrets_secrets_manager_arns = ["arn:aws:secretsmanager:eu-central-1:012345678910:secret:/edp/*"]
+external_secrets_kms_key_arns         = []
+kaniko_service_accounts               = ["krci:tekton"]
+kaniko_repository_actions = [
+  "ecr:BatchCheckLayerAvailability",
+  "ecr:BatchGetImage",
+  "ecr:CompleteLayerUpload",
+  "ecr:GetDownloadUrlForLayer",
+  "ecr:InitiateLayerUpload",
+  "ecr:PutImage",
+  "ecr:UploadLayerPart",
+]
+
 vpc_id             = "vpc-053a2853a6b2649da"
 private_subnets_id = ["subnet-012345678910", "subnet-012345678910"] # eu-central-1a, eu-central-1b. EKS must have two subnets.
 public_subnets_id  = ["subnet-012345678910", "subnet-012345678910"] # eu-central-1a, eu-central-1b. ALB must have two subnets.

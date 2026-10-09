@@ -173,6 +173,73 @@ variable "argocd_irsa_role_arn" {
   default     = ""
 }
 
+# Scope of the IAM roles for ServiceAccounts -------------------------------------
+# The defaults are the unrestricted values: a narrower default would change the roles
+# of every installation that does not set the variable. terraform plan warns while one
+# is in use.
+# A ServiceAccount is "<namespace>:<name>" with * and ? as wildcards; a * for the
+# namespace admits that name from every namespace. IAM limits a trust policy to 2,048
+# characters by default, so a long list needs name patterns.
+variable "external_secrets_service_accounts" {
+  description = "ServiceAccounts that may assume the External Secrets Operator role, e.g. [\"krci:externalsecrets-aws\"]. Every SecretStore that authenticates through the role needs its ServiceAccount listed or matched, the ones of add-ons included. The default admits every ServiceAccount of the cluster."
+  type        = list(string)
+  default     = ["*"]
+  nullable    = false
+
+  validation {
+    condition     = length(var.external_secrets_service_accounts) > 0 && alltrue([for sa in var.external_secrets_service_accounts : sa == "*" || can(regex("^[a-z0-9*?-]+:[a-z0-9*?.-]+$", sa))])
+    error_message = "external_secrets_service_accounts must be [\"*\"] or a non-empty list of \"<namespace>:<name>\" items without the \"system:serviceaccount:\" prefix: lowercase letters, digits and '-', in the name also '.', with * and ? as wildcards."
+  }
+}
+
+variable "external_secrets_secrets_manager_arns" {
+  description = "Secrets Manager secrets the External Secrets Operator role may read, e.g. [\"arn:aws:secretsmanager:eu-central-1:012345678910:secret:/edp/*\"]. At least one ARN is required, also when Secrets Manager is not used. The default admits every secret."
+  type        = list(string)
+  default     = ["arn:aws:secretsmanager:*:*:secret:*"]
+  nullable    = false
+
+  validation {
+    condition     = length(var.external_secrets_secrets_manager_arns) > 0 && alltrue([for arn in var.external_secrets_secrets_manager_arns : can(regex("^arn:aws[a-z-]*:secretsmanager:[a-z0-9*?-]+:[0-9*?]+:secret:[A-Za-z0-9/_+=.@!*?-]+$", arn))])
+    error_message = "external_secrets_secrets_manager_arns must be a non-empty list of Secrets Manager secret ARNs, e.g. \"arn:aws:secretsmanager:eu-central-1:012345678910:secret:/edp/*\"."
+  }
+}
+
+variable "external_secrets_kms_key_arns" {
+  description = "KMS keys the External Secrets Operator role may decrypt with: the customer managed keys that encrypt the parameters and secrets of the platform, or [] when they are encrypted with AWS managed keys. The default admits every key."
+  type        = list(string)
+  default     = ["arn:aws:kms:*:*:key/*"]
+  nullable    = false
+
+  validation {
+    condition     = alltrue([for arn in var.external_secrets_kms_key_arns : can(regex("^arn:aws[a-z-]*:kms:[a-z0-9*?-]+:[0-9*?]+:key/[A-Za-z0-9*?-]+$", arn))])
+    error_message = "external_secrets_kms_key_arns must be a list of KMS key ARNs, e.g. \"arn:aws:kms:eu-central-1:012345678910:key/1234abcd-12ab-34cd-56ef-1234567890ab\"."
+  }
+}
+
+variable "kaniko_service_accounts" {
+  description = "ServiceAccounts that may assume the Kaniko role: the ones the build pipelines run as, e.g. [\"krci:tekton\"]. The default admits every ServiceAccount of the cluster."
+  type        = list(string)
+  default     = ["*"]
+  nullable    = false
+
+  validation {
+    condition     = length(var.kaniko_service_accounts) > 0 && alltrue([for sa in var.kaniko_service_accounts : sa == "*" || can(regex("^[a-z0-9*?-]+:[a-z0-9*?.-]+$", sa))])
+    error_message = "kaniko_service_accounts must be [\"*\"] or a non-empty list of \"<namespace>:<name>\" items without the \"system:serviceaccount:\" prefix: lowercase letters, digits and '-', in the name also '.', with * and ? as wildcards."
+  }
+}
+
+variable "kaniko_repository_actions" {
+  description = "IAM actions the Kaniko role may run on the ECR repositories of the region, next to describing and creating repositories and the login token, which it always has. Pipelines that only push and pull need the actions eks/example.tfvars lists. The default allows every ECR action, the deletion of repositories and images included; its cloudtrail:LookupEvents entry has no effect on a repository."
+  type        = list(string)
+  default     = ["ecr:*", "cloudtrail:LookupEvents"]
+  nullable    = false
+
+  validation {
+    condition     = length(var.kaniko_repository_actions) > 0 && alltrue([for action in var.kaniko_repository_actions : can(regex("^[A-Za-z0-9-]+:[A-Za-z0-9*?]+$", action))])
+    error_message = "kaniko_repository_actions must be a non-empty list of IAM actions, e.g. \"ecr:PutImage\"."
+  }
+}
+
 # Atlantis IAM Role variables
 variable "create_atlantis_iam_role" {
   description = "Enable or disable the creation of IAM role for Atlantis"
