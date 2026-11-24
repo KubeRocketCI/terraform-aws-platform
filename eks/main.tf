@@ -206,28 +206,28 @@ module "eks" {
   identity_providers = var.cluster_identity_providers
 
   # Addons
-  # Verify the addon versions with: aws eks describe-addon-versions --addon-name addon-name --kubernetes-version 1.36
+  # Verify the addon versions with: aws eks describe-addon-versions --addon-name addon-name --kubernetes-version 1.37
   addons = {
     aws-ebs-csi-driver = {
-      addon_version            = "v1.50.3-eksbuild.1"
+      addon_version            = "v1.68.1-eksbuild.1"
       resolve_conflicts        = "OVERWRITE"
       service_account_role_arn = module.aws_ebs_csi_driver_irsa.arn
     }
     snapshot-controller = {
-      addon_version            = "v8.3.0-eksbuild.1"
+      addon_version            = "v8.7.0-eksbuild.5"
       resolve_conflicts        = "OVERWRITE"
       service_account_role_arn = module.aws_ebs_csi_driver_irsa.arn
     }
     coredns = {
-      addon_version     = "v1.14.7-eksbuild.22"
+      addon_version     = "v1.14.7-eksbuild.35"
       resolve_conflicts = "OVERWRITE"
     }
     kube-proxy = {
-      addon_version     = "v1.36.0-eksbuild.58"
+      addon_version     = "v1.37.0-eksbuild.39"
       resolve_conflicts = "OVERWRITE"
     }
     vpc-cni = {
-      addon_version            = "v1.23.2-eksbuild.8"
+      addon_version            = "v1.23.3-eksbuild.2"
       resolve_conflicts        = "OVERWRITE"
       service_account_role_arn = module.vpc_cni_irsa.arn
     },

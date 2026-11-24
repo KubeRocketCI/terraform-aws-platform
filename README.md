@@ -61,7 +61,7 @@ Based on the current Terraform code defaults:
 
 - **Spot Node Group**: 1 desired, 1 min, 1 max (r5.xlarge/r5.2xlarge mixed instances)
 - **On-Demand Node Group**: 0 desired, 0 min, 0 max (r5.xlarge)
-- **EKS Version**: 1.30
+- **EKS Version**: 1.37
 - **Instance Types**: r5.xlarge primary, r5.2xlarge backup
 - **EBS Volume**: 30GB GP3 per node
 - **Scheduling**: 6 AM - 6 PM UTC, Monday-Friday
